@@ -1,0 +1,44 @@
+{
+  "name": "ds-lang",
+  "version": "0.2.1",
+  "description": "",
+  "keywords": [
+    "ds-lang",
+    "dslang"
+  ],
+  "preferGlobal": true,
+  "config": {
+    "publishtest": false
+  },
+  "homepage": "http://www.heysdk.com/",
+  "author": {
+    "name": "zhs007",
+    "email": "sssxueren@gmail.com",
+    "url": "http://www.heysdk.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zhs007/ds-lang"
+  },
+  "bugs": {
+    "url": "https://github.com/zhs007/ds-lang/issues",
+    "email": "sssxueren@gmail.com"
+  },
+  "directories": {
+    "bin": "./bin"
+  },
+  "main": "./bin/dslang.js",
+  "bin": {
+    "pathanalyze": "./bin/dslang.js"
+  },
+  "scripts": {
+    "start": "node ./bin/dslang.js"
+  },
+  "dependencies": {
+    "shelljs": "*",
+    "yargs": "*",
+    "glob": "*"
+  },
+  "license": "MIT",
+  "readmeFilename": "README.md"
+}
