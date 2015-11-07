@@ -1,6 +1,6 @@
 {
   "name": "ds-lang",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "",
   "keywords": [
     "ds-lang",
@@ -29,7 +29,7 @@
   },
   "main": "./bin/dslang.js",
   "bin": {
-    "pathanalyze": "./bin/dslang.js"
+    "dslang": "./bin/dslang.js"
   },
   "scripts": {
     "start": "node ./bin/dslang.js"

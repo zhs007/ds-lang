@@ -77,6 +77,10 @@
     var reg = new RegExp('[A-Z]+[_0-9A-Z]*');
     return reg.text(w);
   }
+
+  function fixComment(comment) {
+    return comment.slice(2).trim();
+  }
 %}
 
 %start expressions
@@ -97,9 +101,9 @@ block:
   ;
 
 blocknode:
-  lineblock COMMENTLINE {addVal($1); $1.comment = $2; $$ = $1}
+  lineblock COMMENTLINE {addVal($1); $1.comment = fixComment($2); $$ = $1}
   |
-  COMMENTLINE codeblock {$2.comment = $1; $$ = $2}
+  COMMENTLINE codeblock {$2.comment = fixComment($1); $$ = $2}
   ;
 
 lineblock:
@@ -129,9 +133,9 @@ codeblock:
   ;
 
 structinfo:
-  structdefline SEMI COMMENTLINE {$1.comment = $3; $$ = [$1]}
+  structdefline SEMI COMMENTLINE {$1.comment = fixComment($3); $$ = [$1]}
   |
-  structdefline SEMI COMMENTLINE structinfo {$1.comment = $3; $4.push($1); $$ = $4}
+  structdefline SEMI COMMENTLINE structinfo {$1.comment = fixComment($3); $4.push($1); $$ = $4}
   ;
 
 structdefline:
@@ -165,9 +169,9 @@ structdefline:
   ;
 
 enuminfo:
-  enumdefline SEMI COMMENTLINE {$1.comment = $3; $$ = [$1]}
+  enumdefline SEMI COMMENTLINE {$1.comment = fixComment($3); $$ = [$1]}
   |
-  enumdefline SEMI COMMENTLINE enuminfo {$1.comment = $3; $4.push($1); $$ = $4}
+  enumdefline SEMI COMMENTLINE enuminfo {$1.comment = fixComment($3); $4.push($1); $$ = $4}
   ;
 
 enumdefline:
