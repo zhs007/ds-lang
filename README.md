@@ -287,3 +287,4 @@ ds-lang的二次开发有2种方式：
 
 * 使用[jison](https://github.com/zaach/jison)做语法分析。
 * 使用[yargs](https://github.com/bcoe/yargs)模块简化命令行工具的开发。
+* 使用[node-xlsx](https://github.com/mgcrea/node-xlsx)模块生成xlsx文件。
