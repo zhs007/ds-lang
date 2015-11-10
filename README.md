@@ -30,7 +30,6 @@ why
  ```
 repeated PlayerGameInfo(pid) _gameinfo;	// 游戏信息
 ```
-
  * 修正小bug若干。
 
 * **0.2.4**
