@@ -56,6 +56,8 @@ if (!grammarok) {
     process.exit(1);
 }
 
+ret = grammar.reverseObj(ret);
+
 console.log('dslang compile finished!');
 fs.writeFileSync(filename + '.json', JSON.stringify(ret), 'utf-8');
 console.log('output file is ' + filename + '.json');

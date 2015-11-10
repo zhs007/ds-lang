@@ -209,4 +209,20 @@ function checkGrammar(obj, callback) {
     return false;
 }
 
+function reverseObj(obj) {
+    if (Array.isArray(obj)) {
+
+        for (var i = 0; i < obj.length; ++i) {
+            if (obj[i].type == 'struct' || obj[i].type == 'static' || obj[i].type == 'enum') {
+                obj[i].val = obj[i].val.reverse();
+            }
+        }
+
+        obj = obj.reverse();
+    }
+
+    return obj;
+}
+
 exports.checkGrammar = checkGrammar;
+exports.reverseObj = reverseObj;

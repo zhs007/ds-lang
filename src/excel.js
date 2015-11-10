@@ -26,7 +26,9 @@ function exportStatic(path, obj, callback, root) {
 
 function exportExcel(path, obj, callback) {
 
-    fs.mkdirSync(path);
+    if (!fs.existsSync(path)) {
+        fs.mkdirSync(path);
+    }
 
     if (Array.isArray(obj)) {
         for (var i = 0; i < obj.length; ++i) {
