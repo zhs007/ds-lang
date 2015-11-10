@@ -13,6 +13,7 @@
 ")"                   return "RP"
 "="                   return "EQU"
 ";"                   return "SEMI"
+"message"             return "MESSAGE"
 "struct"              return "STRUCT"
 "primary"             return "PRIMARY"
 "primary0"            return "PRIMARY0"
@@ -125,6 +126,8 @@ codeblock:
   STATIC WORD_TYPE LB structinfo RB SEMI {$$ = {type: 'static', val: $4, name: $2}}
   |
   ENUM WORD_TYPE LB enuminfo RB SEMI {$$ = {type: 'enum', val: $4, name: $2}}
+  |
+  MESSAGE WORD_TYPE LB structinfo RB SEMI {$$ = {type: 'message', val: $4, name: $2}}
   ;
 
 structinfo:
