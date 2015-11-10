@@ -92,6 +92,36 @@ function checkStructMember(structname, obj, callback, root) {
         }
     }
 
+    if (obj.type2 == 'expand') {
+        if (!obj.hasOwnProperty('expand')) {
+            callback(false, structname + '.' + obj.name + ': expand fail!.');
+
+            return false;
+        }
+
+        if (!base.isEnum(obj.expand, root)) {
+            callback(false, structname + '.' + obj.name + ': expand need enum!.');
+
+            return false;
+        }
+    }
+
+    if (obj.type2 == 'repeated') {
+        if (obj.hasOwnProperty('repeated')) {
+            if (!base.isStruct(obj.type, root)) {
+                callback(false, structname + '.' + obj.name + ': repeated object must be struct.');
+
+                return false;
+            }
+
+            if (!base.hasMember(obj.repeated, base.getGlobalObj(obj.type, root))) {
+                callback(false, structname + '.' + obj.name + ': repeated key(' + obj.repeated + ') not defined in ' + obj.type + '.');
+
+                return false;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -146,7 +176,7 @@ function checkEnumMember(enumname, enumarr, obj, callback) {
 // callback(isok, err)
 function checkEnum(obj, callback) {
     if (obj.type == 'enum') {
-        if (!rEnumString(obj.name)) {
+        if (!isEnumString(obj.name)) {
             callback(false, 'enum ' + obj.name + ': All letters should be capitalized.');
 
             return false;
@@ -190,13 +220,13 @@ function checkGrammar(obj, callback) {
     if (Array.isArray(obj)) {
 
         for (var i = 0; i < obj.length; ++i) {
-            if (obj[i].type == 'struct' || obj.type == 'static') {
+            if (obj[i].type == 'struct' || obj[i].type == 'static') {
                 checkStruct(obj[i], callback, obj);
             }
-            else if (obj.type == 'enum') {
+            else if (obj[i].type == 'enum') {
                 checkEnum(obj[i], callback);
             }
-            else if (obj.type == 'type') {
+            else if (obj[i].type == 'type') {
                 checkType(obj[i], callback, obj);
             }
         }

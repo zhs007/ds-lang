@@ -19,8 +19,39 @@ function exportTable(obj, callback, root) {
 
         var lastcomment = '';
 
+        var validindex = [];
         for (var i = 0; i < obj.val.length; ++i) {
+            // type
+            var t = base.getRealType(obj.val[i].type, root);
+            if (t == '[ERR]') {
+                callback(false, 'struct ' + obj.name + '.' + obj.val[i].name + ': type is Error!');
+
+                return ;
+            }
+            else if (t == 'int') {
+                validindex.push(i);
+            }
+            else if (t == 'string') {
+                validindex.push(i);
+            }
+            else if (t == 'time') {
+                validindex.push(i);
+            }
+            else if (base.isStruct(t, root)) {
+
+            }
+            else {
+                callback(false, 'struct ' + obj.name + '.' + obj.val[i].name + ': type not defined!');
+
+                return ;
+            }
+        }
+
+
+        for (var k = 0; k < validindex.length; ++k) {
+            var i = validindex[k];
             var fn = base.getMemberName(obj.val[i].name);
+
             // name
             str += "`" + fn + "` ";
 
@@ -64,7 +95,7 @@ function exportTable(obj, callback, root) {
                 str += ' DEFAULT CURRENT_TIMESTAMP';
             }
 
-            if (i < obj.val.length - 1) {
+            if (k < validindex.length - 1) {
                 str += ', --' + obj.val[i].comment + '\r\n';
             }
             else {

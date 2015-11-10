@@ -160,7 +160,9 @@ structdefline:
   |
   EXPAND LP WORD_TYPE RP typestr WORD_VAR {$$ = {type: $5.name, name: $6, type2: 'expand', expand: $3}}
   |
-  REPEATED typestr WORD_VAR {$$ = {type: $1.name, name: $2, type2: 'repeated'}}
+  REPEATED typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'repeated'}}
+  |
+  REPEATED typestr LP WORD_VAR RP WORD_VAR {$$ = {type: $2.name, name: $6, type2: 'repeated', repeated: $4}}
   ;
 
 enuminfo:
