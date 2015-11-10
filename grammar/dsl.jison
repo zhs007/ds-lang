@@ -73,11 +73,6 @@
     return 'int';
   }
 
-  function isCapitalWord(w) {
-    var reg = new RegExp('[A-Z]+[_0-9A-Z]*');
-    return reg.text(w);
-  }
-
   function fixComment(comment) {
     return comment.slice(2).trim();
   }
@@ -139,33 +134,33 @@ structinfo:
   ;
 
 structdefline:
-  typestr WORD_VAR {$$ = {type: $1.val, name: $2, val: 0}}
+  typestr WORD_VAR {$$ = {type: $1.name, name: $2}}
   |
-  typestr WORD_VAR EQU statement {$$ = {type: $1.val, name: $2, val: $4}}
+  typestr WORD_VAR EQU statement {$$ = {type: $1.name, name: $2, val: $4}}
   |
-  PRIMARY typestr WORD_VAR {$$ = {type: $2.val, name: $3, val: 0, type2: 'primary'}}
+  PRIMARY typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'primary'}}
   |
-  PRIMARY typestr WORD_VAR EQU statement {$$ = {type: $2.val, name: $3, val: $5, type2: 'primary'}}
+  PRIMARY typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary'}}
   |
-  PRIMARY0 typestr WORD_VAR {$$ = {type: $2.val, name: $3, val: 0, type2: 'primary0'}}
+  PRIMARY0 typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'primary0'}}
   |
-  PRIMARY0 typestr WORD_VAR EQU statement {$$ = {type: $2.val, name: $3, val: $5, type2: 'primary0'}}
+  PRIMARY0 typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary0'}}
   |
-  PRIMARY1 typestr WORD_VAR {$$ = {type: $2.val, name: $3, val: 0, type2: 'primary1'}}
+  PRIMARY1 typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'primary1'}}
   |
-  PRIMARY1 typestr WORD_VAR EQU statement {$$ = {type: $2.val, name: $3, val: $5, type2: 'primary1'}}
+  PRIMARY1 typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary1'}}
   |
-  INDEX typestr WORD_VAR {$$ = {type: $2.val, name: $3, val: 0, type2: 'index'}}
+  INDEX typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'index'}}
   |
-  INDEX typestr WORD_VAR EQU statement {$$ = {type: $2.val, name: $3, val: $5, type2: 'index'}}
+  INDEX typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'index'}}
   |
-  UNQIUE typestr WORD_VAR {$$ = {type: $2.val, name: $3, val: 0, type2: 'unique'}}
+  UNQIUE typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'unique'}}
   |
-  UNQIUE typestr WORD_VAR EQU statement {$$ = {type: $2.val, name: $3, val: $5, type2: 'unique'}}
+  UNQIUE typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'unique'}}
   |
-  EXPAND LP WORD_TYPE RP typestr WORD_VAR {$$ = {type: $5.val, name: $6, val: 0, type2: 'expand', expand: $3}}
+  EXPAND LP WORD_TYPE RP typestr WORD_VAR {$$ = {type: $5.name, name: $6, type2: 'expand', expand: $3}}
   |
-  REPEATED typestr WORD_VAR {$$ = {type: $1.val, name: $2, val: 0, type2: 'repeated'}}
+  REPEATED typestr WORD_VAR {$$ = {type: $1.name, name: $2, type2: 'repeated'}}
   ;
 
 enuminfo:
@@ -179,9 +174,9 @@ enumdefline:
   ;
 
 statement:
-  AUTOINC {$$ = {type: $1, name: $1, val: $1}}
+  AUTOINC {$$ = {type: 'int', name: $1, val: $1}}
   |
-  NOW {$$ = {type: $1, name: $1, val: $1}}
+  NOW {$$ = {type: 'time', name: $1, val: $1}}
   |
   NULL {$$ = {type: $1, name: $1, val: $1}}
   |

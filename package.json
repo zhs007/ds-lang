@@ -38,7 +38,8 @@
   "dependencies": {
     "shelljs": "*",
     "yargs": "*",
-    "glob": "*"
+    "glob": "*",
+    "node-xlsx": "*"
   },
   "license": "MIT",
   "readmeFilename": "README.md"

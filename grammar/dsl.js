@@ -137,51 +137,57 @@ case 17: case 33:
 $$[$0-3].comment = fixComment($$[$0-1]); $$[$0].push($$[$0-3]); this.$ = $$[$0]
 break;
 case 18:
-this.$ = {type: $$[$0-1].val, name: $$[$0], val: 0}
+this.$ = {type: $$[$0-1].name, name: $$[$0]}
 break;
 case 19:
-this.$ = {type: $$[$0-3].val, name: $$[$0-2], val: $$[$0]}
+this.$ = {type: $$[$0-3].name, name: $$[$0-2], val: $$[$0]}
 break;
 case 20:
-this.$ = {type: $$[$0-1].val, name: $$[$0], val: 0, type2: 'primary'}
+this.$ = {type: $$[$0-1].name, name: $$[$0], type2: 'primary'}
 break;
 case 21:
-this.$ = {type: $$[$0-3].val, name: $$[$0-2], val: $$[$0], type2: 'primary'}
+this.$ = {type: $$[$0-3].name, name: $$[$0-2], val: $$[$0], type2: 'primary'}
 break;
 case 22:
-this.$ = {type: $$[$0-1].val, name: $$[$0], val: 0, type2: 'primary0'}
+this.$ = {type: $$[$0-1].name, name: $$[$0], type2: 'primary0'}
 break;
 case 23:
-this.$ = {type: $$[$0-3].val, name: $$[$0-2], val: $$[$0], type2: 'primary0'}
+this.$ = {type: $$[$0-3].name, name: $$[$0-2], val: $$[$0], type2: 'primary0'}
 break;
 case 24:
-this.$ = {type: $$[$0-1].val, name: $$[$0], val: 0, type2: 'primary1'}
+this.$ = {type: $$[$0-1].name, name: $$[$0], type2: 'primary1'}
 break;
 case 25:
-this.$ = {type: $$[$0-3].val, name: $$[$0-2], val: $$[$0], type2: 'primary1'}
+this.$ = {type: $$[$0-3].name, name: $$[$0-2], val: $$[$0], type2: 'primary1'}
 break;
 case 26:
-this.$ = {type: $$[$0-1].val, name: $$[$0], val: 0, type2: 'index'}
+this.$ = {type: $$[$0-1].name, name: $$[$0], type2: 'index'}
 break;
 case 27:
-this.$ = {type: $$[$0-3].val, name: $$[$0-2], val: $$[$0], type2: 'index'}
+this.$ = {type: $$[$0-3].name, name: $$[$0-2], val: $$[$0], type2: 'index'}
 break;
 case 28:
-this.$ = {type: $$[$0-1].val, name: $$[$0], val: 0, type2: 'unique'}
+this.$ = {type: $$[$0-1].name, name: $$[$0], type2: 'unique'}
 break;
 case 29:
-this.$ = {type: $$[$0-3].val, name: $$[$0-2], val: $$[$0], type2: 'unique'}
+this.$ = {type: $$[$0-3].name, name: $$[$0-2], val: $$[$0], type2: 'unique'}
 break;
 case 30:
-this.$ = {type: $$[$0-1].val, name: $$[$0], val: 0, type2: 'expand', expand: $$[$0-3]}
+this.$ = {type: $$[$0-1].name, name: $$[$0], type2: 'expand', expand: $$[$0-3]}
 break;
 case 31:
-this.$ = {type: $$[$0-2].val, name: $$[$0-1], val: 0, type2: 'repeated'}
+this.$ = {type: $$[$0-2].name, name: $$[$0-1], type2: 'repeated'}
 break;
 case 34:
 this.$ = {type: 'int', name: $$[$0-2], val: $$[$0]}
 break;
-case 35: case 36: case 37:
+case 35:
+this.$ = {type: 'int', name: $$[$0], val: $$[$0]}
+break;
+case 36:
+this.$ = {type: 'time', name: $$[$0], val: $$[$0]}
+break;
+case 37:
 this.$ = {type: $$[$0], name: $$[$0], val: $$[$0]}
 break;
 case 38:
@@ -223,7 +229,6 @@ parseError: function parseError(str, hash) {
     }
 },
 parse: function parse(input) {
-    __onInit();
     var self = this, stack = [0], tstack = [], vstack = [null], lstack = [], table = this.table, yytext = '', yylineno = 0, yyleng = 0, recovering = 0, TERROR = 2, EOF = 1;
     var args = lstack.slice.call(arguments, 1);
     var lexer = Object.create(this.lexer);
@@ -388,11 +393,6 @@ parse: function parse(input) {
     }
 
     return 'int';
-  }
-
-  function isCapitalWord(w) {
-    var reg = new RegExp('[A-Z]+[_0-9A-Z]*');
-    return reg.text(w);
   }
 
   function fixComment(comment) {

@@ -4,7 +4,22 @@ var fs = require('fs');
 var process = require('process');
 var glob = require('glob');
 var dsl = require('../grammar/dsl');
+var grammar = require('../src/grammar');
+var sql = require('../src/sql');
+var excel = require('../src/excel');
 var argv = require('yargs')
+    .option('s', {
+        alias : 'sql',
+        demand: false,
+        describe: 'output sql',
+        type: 'boolean'
+    })
+    .option('e', {
+        alias : 'excel',
+        demand: false,
+        describe: 'output excel',
+        type: 'boolean'
+    })
     .usage('Usage: dslang input-filename')
     .example('dslang input-filename', 'dslang input-filename')
     .help('h')
@@ -29,6 +44,45 @@ if (ptindex > 0) {
 var input = fs.readFileSync(basearr[0], 'utf-8');
 var ret = dsl.parse(input);
 
-console.log('dslang compile finished! output file is ' + filename + '.json');
+var grammarok = grammar.checkGrammar(ret, function (isok, err) {
+    if (!isok) {
+        console.log('Error => ' + err);
+    }
+});
 
+if (!grammarok) {
+    console.log('Error => checkGrammar()');
+
+    process.exit(1);
+}
+
+console.log('dslang compile finished!');
 fs.writeFileSync(filename + '.json', JSON.stringify(ret), 'utf-8');
+console.log('output file is ' + filename + '.json');
+
+if (argv.sql) {
+    var sqlstr = sql.exportSql(ret, function (isok, err) {
+        if (!isok) {
+            console.log('Error => ' + err);
+        }
+    });
+
+    if (sqlstr == undefined) {
+        console.log('Error => exportSql()');
+
+        process.exit(1);
+    }
+
+    fs.writeFileSync(filename + '.sql', sqlstr, 'utf-8');
+    console.log('output file is ' + filename + '.sql');
+}
+
+if (argv.excel) {
+    excel.exportExcel(filename, ret, function (isok, err) {
+        if (!isok) {
+            console.log('Error => ' + err);
+        }
+    });
+
+    console.log('output path is ' + filename);
+}

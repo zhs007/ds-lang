@@ -21,6 +21,11 @@ why
 
 更新说明
 ---
+* **0.2.4**
+ * 增强语法检验。
+ * 增加命令行参数**--sql**，能直接输出sql语句。
+ * 增加命令行参数**--excel**，能将**static**表导出成excel文件。
+
 * **0.2.3**
  * 修正npm发布项目的bug，**package.json**文件需要**latest**属性。
 
@@ -245,6 +250,24 @@ struct PlayerInfo{
 
 ```
 
+jison
+---
+grammar目录内的dsl.jison文件就是jison的语法文件，可以通过命令行命令生成出dsl.js文件。
+
+```
+jison dsl.jison
+```
+
+但是，为了能多次使用解释器，我们还加了一个初始化接口，最好在dsl.js文件里面显示的调用一下。
+
+```
+parse: function parse(input) {
+    __onInit();
+```
+
+至于jison的安装，可以参考[jison](https://github.com/zaach/jison)相关文档。
+
+如果对jison语法有兴趣，也可以看看我的另外一个项目[jison-demo](https://github.com/zhs007/jison-demo)，这里面有一些基础的例子，基本上ds-lang就是基于这些例子完善起来的。
 
 二次开发
 ---
@@ -254,3 +277,9 @@ ds-lang的二次开发有2种方式：
 2. ds-lang会生成一个json格式文件，这个文件其实是非常好读的，也可以基于这个输出文件做后续的二次开发。
 
 如果你有更好的想法，也可以和我们联系。
+
+使用到的第三方库
+---
+
+* 使用[jison](https://github.com/zaach/jison)做语法分析。
+* 使用[yargs](https://github.com/bcoe/yargs)模块简化命令行工具的开发。
