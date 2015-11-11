@@ -3,9 +3,14 @@
  */
 
 var rMemberName = new RegExp('[a-z]+[_0-9a-z]*');
+var rExportTypeString = new RegExp('[A-Z]+[_0-9a-zA-Z]*');
 
 function getMemberName(str) {
     return rMemberName.exec(str.toLowerCase());
+}
+
+function isExportTypeString(str) {
+    return rExportTypeString.exec(str) == str;
 }
 
 function isBaseType(str) {
@@ -22,14 +27,16 @@ function isBaseType(str) {
     return false;
 }
 
-function isType(root, str) {
+function isType(str, root) {
     if (isBaseType(str)) {
         return true;
     }
 
     for (var i = 0; i < root.length; ++i) {
-        if (root[i].name == str && (root[i].type == 'type' || root[i].type == 'struct' || root[i].type == 'enum')) {
-            return true;
+        if (root[i].name == str) {
+            if (root[i].type == 'type' || root[i].type == 'struct' || root[i].type == 'enum' || root[i].type == 'static' || root[i].type == 'message') {
+                return true;
+            }
         }
     }
 
@@ -84,9 +91,21 @@ function isStruct(str, root) {
     return false;
 }
 
+function isStatic(str, root) {
+    for (var i = 0; i < root.length; ++i) {
+        if (root[i].name == str) {
+            if (root[i].type == 'static') {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
 function hasMember(str, obj) {
     for (var i = 0; i < obj.val.length; ++i) {
-        if (obj.val[i].name == str) {
+        if (obj.val[i].name.name == str) {
             return true;
         }
     }
@@ -114,6 +133,8 @@ exports.getRealType = getRealType;
 exports.getMemberName = getMemberName;
 exports.isEnum = isEnum;
 exports.isStruct = isStruct;
+exports.isStatic = isStatic;
 exports.hasMember = hasMember;
 exports.getGlobalObj = getGlobalObj;
 exports.getEnumMemberRealName = getEnumMemberRealName;
+exports.isExportTypeString = isExportTypeString;

@@ -4,8 +4,6 @@
 
 var base = require('./base');
 
-var rFieldString = new RegExp('[a-z]+[_0-9a-z]*');
-
 function getTableName(str) {
     return str.toLowerCase();
 }
@@ -14,6 +12,7 @@ function getTableName(str) {
 function exportTable(obj, callback, root) {
     if (obj.type == 'struct') {
         var isautoinc = false;
+        var autoincval = 1;
         var str = "--" + obj.comment + '\r\n';
         str += "CREATE TABLE IF NOT EXISTS `" + getTableName(obj.name) + "` (" + '\r\n';
 
@@ -21,10 +20,11 @@ function exportTable(obj, callback, root) {
 
         var validindex = [];
         for (var i = 0; i < obj.val.length; ++i) {
+            var membername = obj.val[i].name.name;
             // type
             var t = base.getRealType(obj.val[i].type, root);
             if (t == '[ERR]') {
-                callback(false, 'struct ' + obj.name + '.' + obj.val[i].name + ': type is Error!');
+                callback(false, 'struct ' + obj.name + '.' + membername + ': type is Error!');
 
                 return ;
             }
@@ -41,7 +41,7 @@ function exportTable(obj, callback, root) {
 
             }
             else {
-                callback(false, 'struct ' + obj.name + '.' + obj.val[i].name + ': type not defined!');
+                callback(false, 'struct ' + obj.name + '.' + membername + ': type not defined!');
 
                 return ;
             }
@@ -50,15 +50,16 @@ function exportTable(obj, callback, root) {
 
         for (var k = 0; k < validindex.length; ++k) {
             var i = validindex[k];
-            var fn = base.getMemberName(obj.val[i].name);
+            var membername = obj.val[i].name.name;
+            var fn = base.getMemberName(membername);
 
             // name
-            str += "`" + fn + "` ";
+            str += "  `" + fn + "` ";
 
             // type
             var t = base.getRealType(obj.val[i].type, root);
             if (t == '[ERR]') {
-                callback(false, 'struct ' + obj.name + '.' + obj.val[i].name + ': type is Error!');
+                callback(false, 'struct ' + obj.name + '.' + membername + ': type is Error!');
 
                 return ;
             }
@@ -72,7 +73,7 @@ function exportTable(obj, callback, root) {
                 str += "timestamp ";
             }
             else {
-                callback(false, 'struct ' + obj.name + '.' + obj.val[i].name + ': type not defined!');
+                callback(false, 'struct ' + obj.name + '.' + membername + ': type not defined!');
 
                 return ;
             }
@@ -89,6 +90,10 @@ function exportTable(obj, callback, root) {
             if (typeof(obj.val[i].val) == 'object' && obj.val[i].val.val == 'AUTOINC') {
                 str += ' AUTO_INCREMENT';
                 isautoinc = true;
+
+                if (obj.val[i].val.hasOwnProperty('autoinc')) {
+                    autoincval = obj.val[i].val.autoinc;
+                }
             }
             // DEFAULT CURRENT_TIMESTAMP
             else if (typeof(obj.val[i].val) == 'object' && obj.val[i].val.val == 'NOW') {
@@ -106,25 +111,26 @@ function exportTable(obj, callback, root) {
         // PRIMARY & INDEX
         for (var i = 0; i < obj.val.length; ++i) {
             if (obj.val[i].hasOwnProperty('type2')) {
-                var fn = base.getMemberName(obj.val[i].name);
+                var membername = obj.val[i].name.name;
+                var fn = base.getMemberName(membername);
 
                 if (obj.val[i].type2 == 'primary') {
                     str += ",";
                     str += lastcomment;
                     lastcomment = '\r\n';
-                    str += "PRIMARY KEY (`" + fn + "`)";
+                    str += "  PRIMARY KEY (`" + fn + "`)";
                 }
                 else if (obj.val[i].type2 == 'primary0' || obj.val[i].type2 == 'primary1' || obj.val[i].type2 == 'index') {
                     str += ",";
                     str += lastcomment;
                     lastcomment = '\r\n';
-                    str += "KEY (`" + fn + "`)";
+                    str += "  KEY (`" + fn + "`)";
                 }
                 if (obj.val[i].type2 == 'unique') {
                     str += ",";
                     str += lastcomment;
                     lastcomment = '\r\n';
-                    str += "UNIQUE (`" + fn + "`)";
+                    str += "  UNIQUE (`" + fn + "`)";
                 }
             }
         }
@@ -134,10 +140,10 @@ function exportTable(obj, callback, root) {
         str += ") ENGINE=InnoDB DEFAULT CHARSET=utf8";
 
         if (isautoinc) {
-            str += ' AUTO_INCREMENT=1';
+            str += ' AUTO_INCREMENT=' + autoincval;
         }
 
-        str += ';';
+        str += ';\r\n';
 
         return str;
     }
@@ -147,7 +153,7 @@ function exportSql(obj, callback) {
     var str = '';
     if (Array.isArray(obj)) {
         for (var i = 0; i < obj.length; ++i) {
-            if (obj[i].type == 'struct') {
+            if (obj[i].type == 'struct' && base.isExportTypeString(obj[i].name)) {
                 var cs = exportTable(obj[i], callback, obj);
                 if (cs == undefined) {
                     return ;

@@ -13,6 +13,7 @@
 ")"                   return "RP"
 "="                   return "EQU"
 ";"                   return "SEMI"
+"."                   return "PT"
 "message"             return "MESSAGE"
 "struct"              return "STRUCT"
 "primary"             return "PRIMARY"
@@ -36,8 +37,7 @@
 0|-0|-[1-9]\d*\.\d*|[1-9]\d*\.\d*|-0\.\d*|0\.\d*|[1-9]\d*|-[1-9]\d*    return 'NUMBER'
 [1-9]\d*|-[1-9]\d*    return 'NUMBER_INT'
 -[1-9]\d*\.\d*|[1-9]\d*\.\d*|-0\.\d*|0\.\d*    return 'NUMBER_FLOAT'
-[A-Z]+[_0-9a-zA-Z]* return 'WORD_TYPE'
-[_a-z]+[_0-9a-zA-Z]* return 'WORD_VAR'
+[_a-zA-Z]+[_0-9a-zA-Z]* return 'WORD'
 \"[^\"]*\"|\'[^\']*\' return 'STRING'
 <<EOF>>               return 'EOF'
 .                     return 'INVALID'
@@ -103,11 +103,11 @@ blocknode:
   ;
 
 lineblock:
-  typestr WORD_TYPE EQU statement SEMI {$$ = {type: $1.name, val: $4, name: $2}}
+  typestr WORD EQU statementex SEMI {$$ = {type: $1.name, val: $4, name: $2}}
   |
-  TYPEDEF typestr WORD_TYPE SEMI {$$ = {type: 'type', val: $2.name, name: $3}}
+  TYPEDEF typestr WORD SEMI {$$ = {type: 'type', val: $2.name, name: $3}}
   |
-  STRUCT WORD_TYPE SEMI {$$ = {type: 'struct', val: '', name: $2}}
+  STRUCT WORD SEMI {$$ = {type: 'struct', val: '', name: $2}}
   ;
 
 typestr:
@@ -117,17 +117,17 @@ typestr:
   |
   TYPE_TIME {$$ = {type:'time', name: $1}}
   |
-  WORD_TYPE {$$ = {type:getVal($1), name: $1}}
+  WORD {$$ = {type:getVal($1), name: $1}}
   ;
 
 codeblock:
-  STRUCT WORD_TYPE LB structinfo RB SEMI {$$ = {type: 'struct', val: $4, name: $2}}
+  STRUCT WORD LB structinfo RB SEMI {$$ = {type: 'struct', val: $4, name: $2}}
   |
-  STATIC WORD_TYPE LB structinfo RB SEMI {$$ = {type: 'static', val: $4, name: $2}}
+  STATIC WORD LB structinfo RB SEMI {$$ = {type: 'static', val: $4, name: $2}}
   |
-  ENUM WORD_TYPE LB enuminfo RB SEMI {$$ = {type: 'enum', val: $4, name: $2}}
+  ENUM WORD LB enuminfo RB SEMI {$$ = {type: 'enum', val: $4, name: $2}}
   |
-  MESSAGE WORD_TYPE LB structinfo RB SEMI {$$ = {type: 'message', val: $4, name: $2}}
+  MESSAGE WORD LB structinfo RB SEMI {$$ = {type: 'message', val: $4, name: $2}}
   ;
 
 structinfo:
@@ -137,35 +137,51 @@ structinfo:
   ;
 
 structdefline:
-  typestr WORD_VAR {$$ = {type: $1.name, name: $2}}
+  typestr varname {$$ = {type: $1.name, name: $2}}
   |
-  typestr WORD_VAR EQU statement {$$ = {type: $1.name, name: $2, val: $4}}
+  typestr LP WORD RP varname {$$ = {type: $1.name, name: $5, memberkey: $3}}
   |
-  PRIMARY typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'primary'}}
+  typestr varname EQU statementex {$$ = {type: $1.name, name: $2, val: $4}}
   |
-  PRIMARY typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary'}}
+  PRIMARY typestr varname {$$ = {type: $2.name, name: $3, type2: 'primary'}}
   |
-  PRIMARY0 typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'primary0'}}
+  PRIMARY typestr varname EQU statementex {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary'}}
   |
-  PRIMARY0 typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary0'}}
+  PRIMARY0 typestr varname {$$ = {type: $2.name, name: $3, type2: 'primary0'}}
   |
-  PRIMARY1 typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'primary1'}}
+  PRIMARY0 typestr varname EQU statementex {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary0'}}
   |
-  PRIMARY1 typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary1'}}
+  PRIMARY1 typestr varname {$$ = {type: $2.name, name: $3, type2: 'primary1'}}
   |
-  INDEX typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'index'}}
+  PRIMARY1 typestr varname EQU statementex {$$ = {type: $2.name, name: $3, val: $5, type2: 'primary1'}}
   |
-  INDEX typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'index'}}
+  INDEX typestr varname {$$ = {type: $2.name, name: $3, type2: 'index'}}
   |
-  UNQIUE typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'unique'}}
+  INDEX typestr varname EQU statementex {$$ = {type: $2.name, name: $3, val: $5, type2: 'index'}}
   |
-  UNQIUE typestr WORD_VAR EQU statement {$$ = {type: $2.name, name: $3, val: $5, type2: 'unique'}}
+  UNQIUE typestr varname {$$ = {type: $2.name, name: $3, type2: 'unique'}}
   |
-  EXPAND LP WORD_TYPE RP typestr WORD_VAR {$$ = {type: $5.name, name: $6, type2: 'expand', expand: $3}}
+  UNQIUE typestr varname EQU statementex {$$ = {type: $2.name, name: $3, val: $5, type2: 'unique'}}
   |
-  REPEATED typestr WORD_VAR {$$ = {type: $2.name, name: $3, type2: 'repeated'}}
+  EXPAND LP WORD RP typestr varname {$$ = {type: $5.name, name: $6, type2: 'expand', expand: $3}}
   |
-  REPEATED typestr LP WORD_VAR RP WORD_VAR {$$ = {type: $2.name, name: $6, type2: 'repeated', repeated: $4}}
+  EXPAND typestr varname {$$ = {type: $2.name, name: $3, type2: 'expand'}}
+  |
+  REPEATED typestr varname {$$ = {type: $2.name, name: $3, type2: 'repeated'}}
+  |
+  REPEATED typestr LP WORD RP varname {$$ = {type: $2.name, name: $6, type2: 'repeated', memberkey: $4}}
+  ;
+
+varname:
+  WORD {$$ = {name: $1}}
+  |
+  WORD LP dataval RP {$$ = {name: $1, data: $3}}
+  ;
+
+dataval:
+  WORD {$$ = $1}
+  |
+  WORD PT dataval {$$ = $1 + '.' + $3}
   ;
 
 enuminfo:
@@ -175,16 +191,22 @@ enuminfo:
   ;
 
 enumdefline:
-  WORD_TYPE EQU statement {$$ = {type: 'int', name: $1, val: $3}}
+  WORD EQU statementex {$$ = {type: 'int', name: $1, val: $3}}
   ;
 
-statement:
+statementex:
   AUTOINC {$$ = {type: 'int', name: $1, val: $1}}
+  |
+  AUTOINC LP statement RP {$$ = {type: 'int', name: $1, val: $1, autoinc: $3.val}}
   |
   NOW {$$ = {type: 'time', name: $1, val: $1}}
   |
   NULL {$$ = {type: $1, name: $1, val: $1}}
   |
+  statement {$$ = $1}
+  ;
+
+statement:
   term PLUS term {$$ = {type: $1.type, name: $1.name + ' + ' + $3.name, val: $1.val + $3.val}}
   |
   term MINUS term {$$ = {type: $1.type, name: $1.name + ' - ' + $3.name, val: $1.val - $3.val}}
@@ -203,7 +225,7 @@ term:
 factor:
   NUMBER {$$ = {type: 'int', name: $1, val: parseFloat($1)}}
   |
-  WORD_VAR {$$ = {type: getType($1), name: $1, val: getVal($1)}}
+  WORD {$$ = {type: getType($1), name: $1, val: getVal($1)}}
   |
   STRING {$$ = {type: 'string', name: $1, val: $1.slice(1, -1)}}
   |

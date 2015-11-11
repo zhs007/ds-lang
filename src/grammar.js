@@ -4,7 +4,8 @@
 
 var base = require('./base');
 
-var rTypeString = new RegExp('[A-Z]+[_0-9a-zA-Z]*');
+var rGlobalString = new RegExp('[A-Z]+[_0-9A-Z]*');
+var rTypeString = new RegExp('[A-Z]+[_0-9a-zA-Z]*|_[A-Z]+[_0-9a-zA-Z]*');
 var rVarString = new RegExp('[_a-z]+[_0-9a-zA-Z]*');
 var rEnumString = new RegExp('[A-Z]+[_0-9A-Z]*');
 
@@ -18,6 +19,10 @@ function isVarString(str) {
 
 function isEnumString(str) {
     return rEnumString.exec(str) == str;
+}
+
+function isGlobalString(str) {
+    return rGlobalString.exec(str) == str;
 }
 
 //function isBaseType(str) {
@@ -50,14 +55,16 @@ function isEnumString(str) {
 
 // callback(isok, err)
 function checkStructMember(structname, obj, callback, root) {
-    if (!isVarString(obj.name)) {
-        callback(false, structname + '.' + obj.name + ': The first letter should be lowercase.');
+    var membername = obj.name.name;
+
+    if (!isVarString(membername)) {
+        callback(false, structname + '.' + membername + ': The first letter should be lowercase.');
 
         return false;
     }
 
-    if (!base.isType(root, obj.type)) {
-        callback(false, structname + '.' + obj.name + ': ' + obj.type + ' not defined.');
+    if (!base.isType(obj.type, root)) {
+        callback(false, structname + '.' + membername + ': ' + obj.type + ' not defined.');
 
         return false;
     }
@@ -73,7 +80,7 @@ function checkStructMember(structname, obj, callback, root) {
                 }
             }
 
-            callback(false, structname + '.' + obj.name + ': default is not NULL or NOW.');
+            callback(false, structname + '.' + membername + ': default is not NULL or NOW.');
 
             return false;
         }
@@ -83,7 +90,7 @@ function checkStructMember(structname, obj, callback, root) {
             if (typeof(obj.val) == 'object') {
                 if (obj.val.type == 'int' && obj.val.val == 'AUTOINC') {
                     if (obj.type2 != 'primary') {
-                        callback(false, structname + '.' + obj.name + ': AUTOINC is primary.');
+                        callback(false, structname + '.' + membername + ': AUTOINC is primary.');
 
                         return false;
                     }
@@ -93,29 +100,28 @@ function checkStructMember(structname, obj, callback, root) {
     }
 
     if (obj.type2 == 'expand') {
-        if (!obj.hasOwnProperty('expand')) {
-            callback(false, structname + '.' + obj.name + ': expand fail!.');
+        if (obj.hasOwnProperty('expand')) {
+            if (!base.isEnum(obj.expand, root)) {
+                callback(false, structname + '.' + membername + ': expand need enum!.');
 
-            return false;
+                return false;
+            }
         }
+        else {
 
-        if (!base.isEnum(obj.expand, root)) {
-            callback(false, structname + '.' + obj.name + ': expand need enum!.');
-
-            return false;
         }
     }
 
     if (obj.type2 == 'repeated') {
-        if (obj.hasOwnProperty('repeated')) {
-            if (!base.isStruct(obj.type, root)) {
-                callback(false, structname + '.' + obj.name + ': repeated object must be struct.');
+        if (obj.hasOwnProperty('memberkey')) {
+            if (!(base.isStruct(obj.type, root) || base.isStatic(obj.type, root))) {
+                callback(false, structname + '.' + membername + ': repeated object must be struct.');
 
                 return false;
             }
 
-            if (!base.hasMember(obj.repeated, base.getGlobalObj(obj.type, root))) {
-                callback(false, structname + '.' + obj.name + ': repeated key(' + obj.repeated + ') not defined in ' + obj.type + '.');
+            if (!base.hasMember(obj.memberkey, base.getGlobalObj(obj.type, root))) {
+                callback(false, structname + '.' + membername + ': repeated key(' + obj.memberkey + ') not defined in ' + obj.type + '.');
 
                 return false;
             }
@@ -205,7 +211,7 @@ function checkType(obj, callback, root) {
             return false;
         }
 
-        if (!base.isType(root, obj.name)) {
+        if (!base.isType(obj.name, root)) {
             callback(false, 'global type ' + obj.name + ': ' + obj.name + ' not defined.');
 
             return false;
@@ -243,7 +249,7 @@ function reverseObj(obj) {
     if (Array.isArray(obj)) {
 
         for (var i = 0; i < obj.length; ++i) {
-            if (obj[i].type == 'struct' || obj[i].type == 'static' || obj[i].type == 'enum') {
+            if (obj[i].type == 'struct' || obj[i].type == 'static' || obj[i].type == 'enum' || obj[i].type == 'message') {
                 obj[i].val = obj[i].val.reverse();
             }
         }
