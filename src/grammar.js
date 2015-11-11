@@ -108,7 +108,21 @@ function checkStructMember(structname, obj, callback, root) {
             }
         }
         else {
+            var cobj = base.getGlobalObj(obj.type, root);
+            if (cobj == undefined) {
+                callback(false, structname + '.' + membername + ': expand fail!.');
 
+                return false;
+            }
+
+            var structobj = base.getGlobalObj(structname, root);
+            for (var i = 0; i < cobj.val.length; ++i) {
+                if (base.hasMemberEx(cobj.val[i].name.name, obj.type, structobj, root)) {
+                    callback(false, structname + '.' + membername + '.' + cobj.val[i].name.name + ': expand err(duplication of name).');
+
+                    return false;
+                }
+            }
         }
     }
 
@@ -120,7 +134,7 @@ function checkStructMember(structname, obj, callback, root) {
                 return false;
             }
 
-            if (!base.hasMember(obj.memberkey, base.getGlobalObj(obj.type, root))) {
+            if (!base.hasMember(obj.memberkey, base.getGlobalObj(obj.type, root), root)) {
                 callback(false, structname + '.' + membername + ': repeated key(' + obj.memberkey + ') not defined in ' + obj.type + '.');
 
                 return false;
@@ -141,6 +155,12 @@ function checkStruct(obj, callback, root) {
         }
 
         for (var i = 0; i < obj.val.length; ++i) {
+            if (base.countMember(obj.val[i].name.name, obj, root) > 1) {
+                callback(false, 'struct ' + obj.name + '.' + obj.val[i].name.name + ': duplication of name.');
+
+                return false;
+            }
+
             if (!checkStructMember(obj.name, obj.val[i], callback, root)) {
                 return false;
             }

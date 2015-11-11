@@ -18,11 +18,16 @@ function exportTable(obj, callback, root) {
 
         var lastcomment = '';
 
+        var lstmember = [];
+        base.forEachStruct(obj.name, obj, root, function (structname, memberobj, root) {
+            lstmember.push(memberobj);
+        });
+
         var validindex = [];
-        for (var i = 0; i < obj.val.length; ++i) {
-            var membername = obj.val[i].name.name;
+        for (var i = 0; i < lstmember.length; ++i) {
+            var membername = lstmember[i].name.name;
             // type
-            var t = base.getRealType(obj.val[i].type, root);
+            var t = base.getRealType(lstmember[i].type, root);
             if (t == '[ERR]') {
                 callback(false, 'struct ' + obj.name + '.' + membername + ': type is Error!');
 
@@ -50,14 +55,14 @@ function exportTable(obj, callback, root) {
 
         for (var k = 0; k < validindex.length; ++k) {
             var i = validindex[k];
-            var membername = obj.val[i].name.name;
+            var membername = lstmember[i].name.name;
             var fn = base.getMemberName(membername);
 
             // name
             str += "  `" + fn + "` ";
 
             // type
-            var t = base.getRealType(obj.val[i].type, root);
+            var t = base.getRealType(lstmember[i].type, root);
             if (t == '[ERR]') {
                 callback(false, 'struct ' + obj.name + '.' + membername + ': type is Error!');
 
@@ -79,7 +84,7 @@ function exportTable(obj, callback, root) {
             }
 
             // NULL
-            if (typeof(obj.val[i].val) == 'object' && obj.val[i].val.type == 'NULL') {
+            if (typeof(lstmember[i].val) == 'object' && lstmember[i].val.type == 'NULL') {
                 str += 'NULL';
             }
             else {
@@ -87,46 +92,46 @@ function exportTable(obj, callback, root) {
             }
 
             // AUTO_INCREMENT
-            if (typeof(obj.val[i].val) == 'object' && obj.val[i].val.val == 'AUTOINC') {
+            if (typeof(lstmember[i].val) == 'object' && lstmember[i].val.val == 'AUTOINC') {
                 str += ' AUTO_INCREMENT';
                 isautoinc = true;
 
-                if (obj.val[i].val.hasOwnProperty('autoinc')) {
-                    autoincval = obj.val[i].val.autoinc;
+                if (lstmember[i].val.hasOwnProperty('autoinc')) {
+                    autoincval = lstmember[i].val.autoinc;
                 }
             }
             // DEFAULT CURRENT_TIMESTAMP
-            else if (typeof(obj.val[i].val) == 'object' && obj.val[i].val.val == 'NOW') {
+            else if (typeof(lstmember[i].val) == 'object' && lstmember[i].val.val == 'NOW') {
                 str += ' DEFAULT CURRENT_TIMESTAMP';
             }
 
             if (k < validindex.length - 1) {
-                str += ', --' + obj.val[i].comment + '\r\n';
+                str += ', --' + lstmember[i].comment + '\r\n';
             }
             else {
-                lastcomment = ' --' + obj.val[i].comment + '\r\n';
+                lastcomment = ' --' + lstmember[i].comment + '\r\n';
             }
         }
 
         // PRIMARY & INDEX
-        for (var i = 0; i < obj.val.length; ++i) {
-            if (obj.val[i].hasOwnProperty('type2')) {
-                var membername = obj.val[i].name.name;
+        for (var i = 0; i < lstmember.length; ++i) {
+            if (lstmember[i].hasOwnProperty('type2')) {
+                var membername = lstmember[i].name.name;
                 var fn = base.getMemberName(membername);
 
-                if (obj.val[i].type2 == 'primary') {
+                if (lstmember[i].type2 == 'primary') {
                     str += ",";
                     str += lastcomment;
                     lastcomment = '\r\n';
                     str += "  PRIMARY KEY (`" + fn + "`)";
                 }
-                else if (obj.val[i].type2 == 'primary0' || obj.val[i].type2 == 'primary1' || obj.val[i].type2 == 'index') {
+                else if (lstmember[i].type2 == 'primary0' || lstmember[i].type2 == 'primary1' || lstmember[i].type2 == 'index') {
                     str += ",";
                     str += lastcomment;
                     lastcomment = '\r\n';
                     str += "  KEY (`" + fn + "`)";
                 }
-                if (obj.val[i].type2 == 'unique') {
+                if (lstmember[i].type2 == 'unique') {
                     str += ",";
                     str += lastcomment;
                     lastcomment = '\r\n';
