@@ -7,6 +7,7 @@ var dsl = require('../grammar/dsl');
 var grammar = require('../src/grammar');
 var sql = require('../src/sql');
 var excel = require('../src/excel');
+var protobuf = require('../src/protobuf');
 var argv = require('yargs')
     .option('s', {
         alias : 'sql',
@@ -18,6 +19,12 @@ var argv = require('yargs')
         alias : 'excel',
         demand: false,
         describe: 'output excel',
+        type: 'boolean'
+    })
+    .option('p', {
+        alias : 'protobuf',
+        demand: false,
+        describe: 'output protobuf',
         type: 'boolean'
     })
     .usage('Usage: dslang input-filename')
@@ -87,4 +94,21 @@ if (argv.excel) {
     });
 
     console.log('output path is ' + filename);
+}
+
+if (argv.protobuf) {
+    var pbstr = protobuf.exportProtobuf(ret, function (isok, err) {
+        if (!isok) {
+            console.log('Error => ' + err);
+        }
+    });
+
+    if (pbstr == undefined) {
+        console.log('Error => exportSql()');
+
+        process.exit(1);
+    }
+
+    fs.writeFileSync(filename + '.proto', pbstr, 'utf-8');
+    console.log('output file is ' + filename + '.proto');
 }

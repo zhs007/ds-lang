@@ -154,6 +154,7 @@ function exportTable(obj, callback, root) {
     }
 }
 
+// callback(isok, err)
 function exportSql(obj, callback) {
     var str = '';
     if (Array.isArray(obj)) {

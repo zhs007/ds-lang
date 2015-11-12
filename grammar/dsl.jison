@@ -34,6 +34,10 @@
 "string"              return "TYPE_STRING"
 "int"                 return "TYPE_INT"
 "time"                return "TYPE_TIME"
+"bytes"               return "TYPE_BYTES"
+"bool"                return "TYPE_BOOL"
+"true"                return "BOOL_TRUE"
+"false"               return "BOOL_FALSE"
 0|-0|-[1-9]\d*\.\d*|[1-9]\d*\.\d*|-0\.\d*|0\.\d*|[1-9]\d*|-[1-9]\d*    return 'NUMBER'
 [1-9]\d*|-[1-9]\d*    return 'NUMBER_INT'
 -[1-9]\d*\.\d*|[1-9]\d*\.\d*|-0\.\d*|0\.\d*    return 'NUMBER_FLOAT'
@@ -116,6 +120,10 @@ typestr:
   TYPE_INT {$$ = {type:'int', name: $1}}
   |
   TYPE_TIME {$$ = {type:'time', name: $1}}
+  |
+  TYPE_BYTES {$$ = {type:'bytes', name: $1}}
+  |
+  TYPE_BOOL {$$ = {type:'bool', name: $1}}
   |
   WORD {$$ = {type:getVal($1), name: $1}}
   ;
@@ -202,6 +210,10 @@ statementex:
   NOW {$$ = {type: 'time', name: $1, val: $1}}
   |
   NULL {$$ = {type: $1, name: $1, val: $1}}
+  |
+  BOOL_TRUE {$$ = {type: 'bool', name: $1, val: true}}
+  |
+  BOOL_FALSE {$$ = {type: 'bool', name: $1, val: false}}
   |
   statement {$$ = $1}
   ;
