@@ -24,7 +24,7 @@ function exportEnumMsgID(lstreq, reqid, lstres, resid) {
     var str = '// 消息ID定义 \r\n';
     str += 'enum MSGID {\r\n\r\n';
 
-    str += '\t//---------------------------------------------------- \r\n';
+    str += '\t//--------------------------------------------------------------------------- \r\n';
     str += '\t// 客户端发送的消息 \r\n';
     for (var i = 0; i < lstreq.length; ++i) {
         str += '\t' + buildEnumReqMemberName(lstreq[i].name) + ' = ' + reqid + '; // ' + lstreq[i].comment + '\r\n';
@@ -33,7 +33,7 @@ function exportEnumMsgID(lstreq, reqid, lstres, resid) {
 
     str += '\r\n';
 
-    str += '\t//---------------------------------------------------- \r\n';
+    str += '\t//--------------------------------------------------------------------------- \r\n';
     str += '\t// 服务器发送的消息 \r\n';
     for (var i = 0; i < lstres.length; ++i) {
         str += '\t' + buildEnumResMemberName(lstres[i].name) + ' = ' + resid + '; // ' + lstres[i].comment + '\r\n';

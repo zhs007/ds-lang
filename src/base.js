@@ -109,6 +109,31 @@ function isStatic(str, root) {
     return false;
 }
 
+function hasMember2(str, obj, root) {
+    var ii = str.indexOf('.');
+    if (ii < 0) {
+        return hasMember(str, obj, root);
+    }
+
+    if (ii == 0) {
+        return false;
+    }
+
+    var curtype = undefined;
+    var cur = str.slice(0, ii);
+    forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
+        if (cur == cobj.name.name) {
+            curtype = cobj.type;
+        }
+    });
+
+    if (curtype != undefined) {
+        return hasMember2(str.slice(ii + 1), getGlobalObj(curtype, root), root);
+    }
+
+    return false;
+}
+
 function hasMember(str, obj, root) {
     for (var i = 0; i < obj.val.length; ++i) {
         if (obj.val[i].type2 == 'expand' && !obj.val[i].hasOwnProperty('expand') && isStruct(obj.val[i].type, root)) {
@@ -213,7 +238,7 @@ function forEachStruct(structname, obj, root, callback) {
 function countGlobalObj(str, root) {
     var nums = 0;
     for (var i = 0; i < root.length; ++i) {
-        if (root[i].name == str) {
+        if (getNoUnderscoreName(root[i].name) == getNoUnderscoreName(str)) {
             nums++;
         }
     }
@@ -237,6 +262,7 @@ exports.isEnum = isEnum;
 exports.isStruct = isStruct;
 exports.isStatic = isStatic;
 exports.hasMember = hasMember;
+exports.hasMember2 = hasMember2;
 exports.hasMemberEx = hasMemberEx;
 exports.getGlobalObj = getGlobalObj;
 exports.getEnumMemberRealName = getEnumMemberRealName;

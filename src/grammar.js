@@ -106,7 +106,7 @@ function checkStructMember(structname, obj, callback, root) {
                 return false;
             }
 
-            if (!base.hasMember(obj.memberkey, base.getGlobalObj(obj.type, root), root)) {
+            if (!base.hasMember2(obj.memberkey, base.getGlobalObj(obj.type, root), root)) {
                 callback(false, structname + '.' + membername + ': repeated key(' + obj.memberkey + ') not defined in ' + obj.type + '.');
 
                 return false;

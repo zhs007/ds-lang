@@ -23,6 +23,7 @@
 "repeated"            return "REPEATED"
 "unique"              return "UNQIUE"
 "index"               return "INDEX"
+"map"                 return "MAP"
 "AUTOINC"             return "AUTOINC"
 "NOW"                 return "NOW"
 "NULL"                return "NULL"
@@ -177,7 +178,15 @@ structdefline:
   |
   REPEATED typestr varname {$$ = {type: $2.name, name: $3, type2: 'repeated'}}
   |
-  REPEATED typestr LP WORD RP varname {$$ = {type: $2.name, name: $6, type2: 'repeated', memberkey: $4}}
+  REPEATED typestr LP memberkey RP varname {$$ = {type: $2.name, name: $6, type2: 'repeated', memberkey: $4}}
+  |
+  MAP LP WORD RP typestr varname {$$ = {type: $5.name, name: $6, type2: 'map', memberkey: $3}}
+  ;
+
+memberkey:
+  WORD {$$ = $1}
+  |
+  WORD PT dataval {$$ = $1 + '.' + $3}
   ;
 
 varname:
