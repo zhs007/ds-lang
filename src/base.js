@@ -23,6 +23,12 @@ function isBaseType(str) {
     else if (str == 'time') {
         return true;
     }
+    else if (str == 'bool') {
+        return true;
+    }
+    else if (str == 'bytes') {
+        return true;
+    }
 
     return false;
 }
@@ -54,7 +60,7 @@ function getRealType(str, root) {
                 return 'int';
             }
 
-            if (root[i].type == 'struct') {
+            if (root[i].type == 'struct' || root[i].type == 'message' || root[i].type == 'static') {
                 return root[i].name;
             }
 

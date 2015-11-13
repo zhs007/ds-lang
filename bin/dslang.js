@@ -97,14 +97,14 @@ if (argv.excel) {
 }
 
 if (argv.protobuf) {
-    var pbstr = protobuf.exportProtobuf(ret, function (isok, err) {
+    var pbstr = protobuf.exportProtobuf(filename, ret, function (isok, err) {
         if (!isok) {
             console.log('Error => ' + err);
         }
     });
 
     if (pbstr == undefined) {
-        console.log('Error => exportSql()');
+        console.log('Error => exportProtobuf()');
 
         process.exit(1);
     }
