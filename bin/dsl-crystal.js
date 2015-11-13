@@ -37,7 +37,7 @@ var argv = require('yargs')
 var basearr = argv._;
 
 if (basearr == undefined || basearr.length != 1) {
-    console.log('Usage: dslang input-filename');
+    console.log('Usage: dsl-crystal input-filename');
 
     process.exit(1);
 }

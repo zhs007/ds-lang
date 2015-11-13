@@ -1,7 +1,7 @@
 {
   "name": "ds-lang",
-  "version": "0.3.2",
-  "latest": "0.3.2",
+  "version": "0.5.0",
+  "latest": "0.5.0",
   "description": "ds-lang",
   "keywords": [
     "ds-lang",
@@ -30,7 +30,8 @@
   },
   "main": "./bin/dslang.js",
   "bin": {
-    "dslang": "./bin/dslang.js"
+    "dslang": "./bin/dslang.js",
+    "dsl-crystal": "./bin/dslang.js"
   },
   "scripts": {
     "start": "node ./bin/dslang.js"
