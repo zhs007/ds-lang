@@ -25,34 +25,6 @@ function isGlobalString(str) {
     return rGlobalString.exec(str) == str;
 }
 
-//function isBaseType(str) {
-//    if (str == 'int') {
-//        return true;
-//    }
-//    else if (str == 'string') {
-//        return true;
-//    }
-//    else if (str == 'time') {
-//        return true;
-//    }
-//
-//    return false;
-//}
-//
-//function isType(root, str) {
-//    if (isBaseType(str)) {
-//        return true;
-//    }
-//
-//    for (var i = 0; i < root.length; ++i) {
-//        if (root[i].name == str && (root[i].type == 'type' || root[i].type == 'struct' || root[i].type == 'enum')) {
-//            return true;
-//        }
-//    }
-//
-//    return false;
-//}
-
 // callback(isok, err)
 function checkStructMember(structname, obj, callback, root) {
     var membername = obj.name.name;
@@ -147,7 +119,7 @@ function checkStructMember(structname, obj, callback, root) {
 
 // callback(isok, err)
 function checkStruct(obj, callback, root) {
-    if (obj.type == 'struct' || obj.type == 'static') {
+    if (obj.type == 'struct' || obj.type == 'static' || obj.type == 'message') {
         if (!isTypeString(obj.name)) {
             callback(false, 'struct ' + obj.name + ': The first letter should be capitalized.');
 
@@ -163,6 +135,14 @@ function checkStruct(obj, callback, root) {
 
             if (!checkStructMember(obj.name, obj.val[i], callback, root)) {
                 return false;
+            }
+
+            if (obj.type == 'message') {
+                if (obj.val[i].name.name.indexOf('_') == 0) {
+                    callback(false, 'message ' + obj.name + '.' + obj.val[i].name.name + ": can't begin with an underscore(_).");
+
+                    return false;
+                }
             }
         }
     }
@@ -244,9 +224,15 @@ function checkType(obj, callback, root) {
 // callback(isok, err)
 function checkGrammar(obj, callback) {
     if (Array.isArray(obj)) {
-
         for (var i = 0; i < obj.length; ++i) {
-            if (obj[i].type == 'struct' || obj[i].type == 'static') {
+            var nums = base.countGlobalObj(obj[i].name, obj);
+            if (nums > 1) {
+                callback(false, obj[i].name + ': duplication of name');
+
+                return false;
+            }
+
+            if (obj[i].type == 'struct' || obj[i].type == 'static' || obj[i].type == 'message') {
                 checkStruct(obj[i], callback, obj);
             }
             else if (obj[i].type == 'enum') {

@@ -56,6 +56,9 @@ function getPBRealType(str, root) {
         if (str == 'int') {
             return 'int32';
         }
+        else if (str == 'time') {
+            return 'int32';
+        }
 
         return str;
     }
@@ -93,21 +96,62 @@ function getFirstType(member) {
     return 'required';
 }
 
-function exportMsg(msg, callback, root) {
-    var str = '// ' + msg.comment + ' \r\n';
-    str += 'message ' + msg.name + ' {\r\n';
+function exportMember(obj, lstexport, root) {
+    base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
+        if (cobj.name.name.indexOf('_') != 0) {
+            if (base.isEnum(cobj.type, root)) {
+                if (lstexport.indexOf(cobj.type) < 0) {
+                    lstexport.push(cobj.type);
+                }
+            }
+            else if (base.isStruct(cobj.type, root) || base.isStatic(cobj.type, root)) {
 
-    var beginid = 1;
+                if (lstexport.indexOf(cobj.type) < 0) {
+                    lstexport = exportMember(base.getGlobalObj(cobj.type, root), lstexport, root);
+                }
 
-    for (var i = 0; i < msg.val.length; ++i) {
-        str += '\t' + getFirstType(msg.val[i]);
-        str += ' ' + getPBRealType(msg.val[i].type, root);
-        str += ' ' + msg.val[i].name.name + ' = ' + beginid + '; // ' + msg.val[i].comment;
+                if (lstexport.indexOf(cobj.type) < 0) {
+                    lstexport.push(cobj.type);
+                }
+            }
+        }
+    });
 
-        beginid++;
+    return lstexport;
+}
+
+function exportEnum(obj, callback, root) {
+    var str = '// ' + obj.comment + ' \r\n';
+    str += 'enum ' + obj.name + ' {\r\n';
+
+    for (var i = 0; i < obj.val.length; ++i) {
+        str += '\t' + obj.val[i].name + ' = ' + obj.val[i].val.val + '; // ' + obj.val[i].comment;
 
         str += '\r\n';
     }
+
+    str += '}\r\n'
+
+    return str;
+}
+
+function exportMsg(msg, callback, root) {
+    var str = '// ' + msg.comment + ' \r\n';
+    str += 'message ' + base.getNoUnderscoreName(msg.name) + ' {\r\n';
+
+    var beginid = 1;
+
+    base.forEachStruct(msg.name, msg, root, function (structname, obj, root) {
+        if (obj.name.name.indexOf('_') != 0) {
+            str += '\t' + getFirstType(obj);
+            str += ' ' + base.getNoUnderscoreName(getPBRealType(obj.type, root));
+            str += ' ' + obj.name.name + ' = ' + beginid + '; // ' + obj.comment;
+
+            beginid++;
+
+            str += '\r\n';
+        }
+    });
 
     str += '}\r\n'
 
@@ -135,6 +179,32 @@ function exportProtobuf(pkgname, obj, callback) {
         }
 
         str += exportEnumMsgID(lstreq, base.getGlobalObj('REQ_MSGID_BEGIN', obj).val.val, lstres, base.getGlobalObj('RES_MSGID_BEGIN', obj).val.val);
+
+        for (var i = 0; i < obj.length; ++i) {
+            if (obj[i].type == 'message') {
+                lstexport = exportMember(obj[i], lstexport, obj);
+            }
+        }
+
+        for (var i = 0; i < lstexport.length; ++i) {
+            var co = base.getGlobalObj(lstexport[i], obj);
+            if (co.type == 'enum') {
+                var cs = exportEnum(co, callback, obj);
+                if (cs == undefined) {
+                    return ;
+                }
+
+                str += cs + '\r\n';
+            }
+            else {
+                var cs = exportMsg(co, callback, obj);
+                if (cs == undefined) {
+                    return ;
+                }
+
+                str += cs + '\r\n';
+            }
+        }
 
         for (var i = 0; i < obj.length; ++i) {
             if (obj[i].type == 'message') {

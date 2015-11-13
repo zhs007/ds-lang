@@ -210,6 +210,25 @@ function forEachStruct(structname, obj, root, callback) {
     }
 }
 
+function countGlobalObj(str, root) {
+    var nums = 0;
+    for (var i = 0; i < root.length; ++i) {
+        if (root[i].name == str) {
+            nums++;
+        }
+    }
+
+    return nums;
+}
+
+function getNoUnderscoreName(name) {
+    if (name.indexOf('_') == 0) {
+        return getNoUnderscoreName(name.slice(1));
+    }
+
+    return name;
+}
+
 exports.isBaseType = isBaseType;
 exports.isType = isType;
 exports.getRealType = getRealType;
@@ -224,3 +243,5 @@ exports.getEnumMemberRealName = getEnumMemberRealName;
 exports.isExportTypeString = isExportTypeString;
 exports.countMember = countMember;
 exports.forEachStruct = forEachStruct;
+exports.countGlobalObj = countGlobalObj;
+exports.getNoUnderscoreName = getNoUnderscoreName;
