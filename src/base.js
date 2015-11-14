@@ -2,6 +2,8 @@
  * Created by zhs007 on 15/11/9.
  */
 
+var fs = require('fs');
+
 var rMemberName = new RegExp('[a-z]+[_0-9a-z]*');
 var rExportTypeString = new RegExp('[A-Z]+[_0-9a-zA-Z]*');
 
@@ -254,6 +256,15 @@ function getNoUnderscoreName(name) {
     return name;
 }
 
+function loadJson(filename) {
+    if (fs.existsSync(filename)) {
+        var str = fs.readFileSync(filename, 'utf-8');
+        return JSON.parse(str);
+    }
+
+    return undefined;
+}
+
 exports.isBaseType = isBaseType;
 exports.isType = isType;
 exports.getRealType = getRealType;
@@ -271,3 +282,4 @@ exports.countMember = countMember;
 exports.forEachStruct = forEachStruct;
 exports.countGlobalObj = countGlobalObj;
 exports.getNoUnderscoreName = getNoUnderscoreName;
+exports.loadJson = loadJson;

@@ -1,34 +1,24 @@
 #!/usr/bin/env node
 
+var PLUGINS_CLI_NAME = 'dsl-crystal';
+
 var fs = require('fs');
 var process = require('process');
-var glob = require('glob');
 var dsl = require('../grammar/dsl');
+var base = require('../src/base');
 var grammar = require('../src/grammar');
 var sql = require('../src/sql');
 var excel = require('../src/excel');
 var protobuf = require('../src/protobuf');
 var argv = require('yargs')
-    .option('sql', {
-        alias : 'sql',
+    .option('clientcpp', {
+        alias : 'clientcpp',
         demand: false,
-        describe: 'output sql',
+        describe: 'output client cpp code',
         type: 'boolean'
     })
-    .option('excel', {
-        alias : 'excel',
-        demand: false,
-        describe: 'output excel',
-        type: 'boolean'
-    })
-    .option('pb', {
-        alias : 'protobuf',
-        demand: false,
-        describe: 'output protobuf',
-        type: 'boolean'
-    })
-    .usage('Usage: dslang input-filename')
-    .example('dslang input-filename', 'dslang input-filename')
+    .usage('Usage: ' + PLUGINS_CLI_NAME + ' input-filename')
+    .example(PLUGINS_CLI_NAME + ' input-filename', PLUGINS_CLI_NAME + ' input-filename')
     .help('h')
     .alias('h', 'help')
     .epilog('copyright 2015')
@@ -37,7 +27,7 @@ var argv = require('yargs')
 var basearr = argv._;
 
 if (basearr == undefined || basearr.length != 1) {
-    console.log('Usage: dsl-crystal input-filename');
+    console.log('Usage: ' + PLUGINS_CLI_NAME + ' input-filename');
 
     process.exit(1);
 }
@@ -48,67 +38,16 @@ if (ptindex > 0) {
     filename = basearr[0].slice(0, ptindex);
 }
 
-var input = fs.readFileSync(basearr[0], 'utf-8');
-var ret = dsl.parse(input);
-
-var grammarok = grammar.checkGrammar(ret, function (isok, err) {
-    if (!isok) {
-        console.log('Error => ' + err);
-    }
-});
-
-if (!grammarok) {
-    console.log('Error => checkGrammar()');
+if (!fs.existsSync(basearr[0])) {
+    console.log('file ' + basearr[0] + ' not found.');
 
     process.exit(1);
 }
 
-ret = grammar.reverseObj(ret);
+var root = base.loadJson(basearr[0]);
+if (root == undefined) {
+    console.log('file ' + basearr[0] + ' fail!');
 
-console.log('dslang compile finished!');
-fs.writeFileSync(filename + '.json', JSON.stringify(ret), 'utf-8');
-console.log('output file is ' + filename + '.json');
-
-if (argv.sql) {
-    var sqlstr = sql.exportSql(ret, function (isok, err) {
-        if (!isok) {
-            console.log('Error => ' + err);
-        }
-    });
-
-    if (sqlstr == undefined) {
-        console.log('Error => exportSql()');
-
-        process.exit(1);
-    }
-
-    fs.writeFileSync(filename + '.sql', sqlstr, 'utf-8');
-    console.log('output file is ' + filename + '.sql');
+    process.exit(1);
 }
 
-if (argv.excel) {
-    excel.exportExcel(filename, ret, function (isok, err) {
-        if (!isok) {
-            console.log('Error => ' + err);
-        }
-    });
-
-    console.log('output path is ' + filename);
-}
-
-if (argv.protobuf) {
-    var pbstr = protobuf.exportProtobuf(filename, ret, function (isok, err) {
-        if (!isok) {
-            console.log('Error => ' + err);
-        }
-    });
-
-    if (pbstr == undefined) {
-        console.log('Error => exportProtobuf()');
-
-        process.exit(1);
-    }
-
-    fs.writeFileSync(filename + '.proto', pbstr, 'utf-8');
-    console.log('output file is ' + filename + '.proto');
-}
