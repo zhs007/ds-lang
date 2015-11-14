@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 
+var PLUGINS_NAME = 'crystal';
 var PLUGINS_CLI_NAME = 'dsl-crystal';
 
+var plugins = require('../src/plugins/' + PLUGINS_NAME);
 var fs = require('fs');
 var process = require('process');
-var dsl = require('../grammar/dsl');
 var base = require('../src/base');
-var grammar = require('../src/grammar');
-var sql = require('../src/sql');
-var excel = require('../src/excel');
-var protobuf = require('../src/protobuf');
+var code = require('../src/code');
 var argv = require('yargs')
     .option('clientcpp', {
         alias : 'clientcpp',
@@ -51,3 +49,16 @@ if (root == undefined) {
     process.exit(1);
 }
 
+if (argv.clientcpp) {
+    var str = code.exportCode(root, plugins.plugins_clientcpp, '_ClientData', function (isok, errinfo) {
+        if (!isok) {
+            console.log('clientcpp err : ' + errinfo);
+
+            process.exit(1);
+        }
+    }, true);
+
+    fs.writeFileSync(filename + '.h', str, 'utf-8');
+
+    console.log(filename + '.h OK!');
+}

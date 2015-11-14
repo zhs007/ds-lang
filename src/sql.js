@@ -3,6 +3,7 @@
  */
 
 var base = require('./base');
+var code = require('./code');
 
 function getTableName(str) {
     return str.toLowerCase();
@@ -52,14 +53,34 @@ function exportTable(obj, callback, root) {
             }
         }
 
+        var keyblocknums = 0;
 
+        // PRIMARY & INDEX
+        for (var i = 0; i < lstmember.length; ++i) {
+            if (lstmember[i].hasOwnProperty('type2')) {
+                var membername = lstmember[i].name.name;
+                var fn = base.getMemberName(membername);
+
+                if (lstmember[i].type2 == 'primary') {
+                    keyblocknums++;
+                }
+                else if (lstmember[i].type2 == 'primary0' || lstmember[i].type2 == 'primary1' || lstmember[i].type2 == 'index') {
+                    keyblocknums++;
+                }
+                if (lstmember[i].type2 == 'unique') {
+                    keyblocknums++;
+                }
+            }
+        }
+
+        var tarr = [[], []];
         for (var k = 0; k < validindex.length; ++k) {
             var i = validindex[k];
             var membername = lstmember[i].name.name;
             var fn = base.getMemberName(membername);
 
             // name
-            str += "  `" + fn + "` ";
+            var cstr = "`" + fn + "` ";
 
             // type
             var t = base.getRealType(lstmember[i].type, root);
@@ -69,13 +90,13 @@ function exportTable(obj, callback, root) {
                 return ;
             }
             else if (t == 'int') {
-                str += "int ";
+                cstr += "int ";
             }
             else if (t == 'string') {
-                str += "varchar ";
+                cstr += "varchar ";
             }
             else if (t == 'time') {
-                str += "timestamp ";
+                cstr += "timestamp ";
             }
             else {
                 callback(false, 'struct ' + obj.name + '.' + membername + ': type not defined!');
@@ -85,15 +106,15 @@ function exportTable(obj, callback, root) {
 
             // NULL
             if (typeof(lstmember[i].val) == 'object' && lstmember[i].val.type == 'NULL') {
-                str += 'NULL';
+                cstr += 'NULL';
             }
             else {
-                str += 'NOT NULL';
+                cstr += 'NOT NULL';
             }
 
             // AUTO_INCREMENT
             if (typeof(lstmember[i].val) == 'object' && lstmember[i].val.val == 'AUTOINC') {
-                str += ' AUTO_INCREMENT';
+                cstr += ' AUTO_INCREMENT';
                 isautoinc = true;
 
                 if (lstmember[i].val.hasOwnProperty('autoinc')) {
@@ -102,45 +123,53 @@ function exportTable(obj, callback, root) {
             }
             // DEFAULT CURRENT_TIMESTAMP
             else if (typeof(lstmember[i].val) == 'object' && lstmember[i].val.val == 'NOW') {
-                str += ' DEFAULT CURRENT_TIMESTAMP';
+                cstr += ' DEFAULT CURRENT_TIMESTAMP';
             }
 
-            if (k < validindex.length - 1) {
-                str += ', --' + lstmember[i].comment + '\r\n';
+            if (k < validindex.length - 1 || keyblocknums > 0) {
+                cstr += ',';
             }
-            else {
-                lastcomment = ' --' + lstmember[i].comment + '\r\n';
-            }
+
+            tarr[0].push(cstr);
+            tarr[1].push('--' + lstmember[i].comment);
         }
+
+        str += code.alignCode(tarr, '  ');
 
         // PRIMARY & INDEX
-        for (var i = 0; i < lstmember.length; ++i) {
-            if (lstmember[i].hasOwnProperty('type2')) {
-                var membername = lstmember[i].name.name;
-                var fn = base.getMemberName(membername);
+        if (keyblocknums > 0) {
+            for (var i = 0; i < lstmember.length; ++i) {
+                if (lstmember[i].hasOwnProperty('type2')) {
+                    var membername = lstmember[i].name.name;
+                    var fn = base.getMemberName(membername);
+                    var newline = false;
 
-                if (lstmember[i].type2 == 'primary') {
-                    str += ",";
-                    str += lastcomment;
-                    lastcomment = '\r\n';
-                    str += "  PRIMARY KEY (`" + fn + "`)";
-                }
-                else if (lstmember[i].type2 == 'primary0' || lstmember[i].type2 == 'primary1' || lstmember[i].type2 == 'index') {
-                    str += ",";
-                    str += lastcomment;
-                    lastcomment = '\r\n';
-                    str += "  KEY (`" + fn + "`)";
-                }
-                if (lstmember[i].type2 == 'unique') {
-                    str += ",";
-                    str += lastcomment;
-                    lastcomment = '\r\n';
-                    str += "  UNIQUE (`" + fn + "`)";
+                    if (lstmember[i].type2 == 'primary') {
+                        str += "  PRIMARY KEY (`" + fn + "`)";
+                        newline = true;
+                    }
+                    else if (lstmember[i].type2 == 'primary0' || lstmember[i].type2 == 'primary1' || lstmember[i].type2 == 'index') {
+                        str += "  KEY (`" + fn + "`)";
+                        newline = true;
+                    }
+                    if (lstmember[i].type2 == 'unique') {
+                        str += "  UNIQUE (`" + fn + "`)";
+                        newline = true;
+                    }
+
+                    if (newline) {
+                        keyblocknums--;
+
+                        if (keyblocknums > 0) {
+                            str += ',\r\n';
+                        }
+                        else {
+                            str += '\r\n';
+                        }
+                    }
                 }
             }
         }
-
-        str += lastcomment;
 
         str += ") ENGINE=InnoDB DEFAULT CHARSET=utf8";
 

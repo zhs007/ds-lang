@@ -3,6 +3,7 @@
  */
 
 var base = require('./base');
+var code = require('./code');
 
 function isResMsg(name) {
     return name.indexOf('Res_') == 0;
@@ -26,19 +27,28 @@ function exportEnumMsgID(lstreq, reqid, lstres, resid) {
 
     str += '\t//--------------------------------------------------------------------------- \r\n';
     str += '\t// 客户端发送的消息 \r\n';
+    var arr = [[], [], []];
     for (var i = 0; i < lstreq.length; ++i) {
-        str += '\t' + buildEnumReqMemberName(lstreq[i].name) + ' = ' + reqid + '; // ' + lstreq[i].comment + '\r\n';
+        arr[0].push(buildEnumReqMemberName(lstreq[i].name));
+        arr[1].push('= ' + reqid + ';');
+        arr[2].push('// ' + lstreq[i].comment);
         reqid++;
     }
+
+    str += code.alignCode(arr, '\t');
 
     str += '\r\n';
 
     str += '\t//--------------------------------------------------------------------------- \r\n';
     str += '\t// 服务器发送的消息 \r\n';
     for (var i = 0; i < lstres.length; ++i) {
-        str += '\t' + buildEnumResMemberName(lstres[i].name) + ' = ' + resid + '; // ' + lstres[i].comment + '\r\n';
+        arr[0].push(buildEnumReqMemberName(lstres[i].name));
+        arr[1].push('= ' + resid + ';');
+        arr[2].push('// ' + lstres[i].comment);
         resid++;
     }
+
+    str += code.alignCode(arr, '\t');
 
     str += '\r\n';
 
@@ -124,11 +134,14 @@ function exportEnum(obj, callback, root) {
     var str = '// ' + obj.comment + ' \r\n';
     str += 'enum ' + obj.name + ' {\r\n';
 
+    var arr = [[], [], []];
     for (var i = 0; i < obj.val.length; ++i) {
-        str += '\t' + obj.val[i].name + ' = ' + obj.val[i].val.val + '; // ' + obj.val[i].comment;
-
-        str += '\r\n';
+        arr[0].push(obj.val[i].name);
+        arr[1].push('= ' + obj.val[i].val.val + ';');
+        arr[2].push('// ' + obj.val[i].comment);
     }
+
+    str += code.alignCode(arr, '\t');
 
     str += '}\r\n'
 
@@ -141,17 +154,18 @@ function exportMsg(msg, callback, root) {
 
     var beginid = 1;
 
+    var arr = [[], [], []];
     base.forEachStruct(msg.name, msg, root, function (structname, obj, root) {
         if (obj.name.name.indexOf('_') != 0) {
-            str += '\t' + getFirstType(obj);
-            str += ' ' + base.getNoUnderscoreName(getPBRealType(obj.type, root));
-            str += ' ' + obj.name.name + ' = ' + beginid + '; // ' + obj.comment;
+            arr[0].push(getFirstType(obj) + ' ' + base.getNoUnderscoreName(getPBRealType(obj.type, root)) + ' ' + obj.name.name);
+            arr[1].push('= ' + beginid + ';');
+            arr[2].push('// ' + obj.comment);
 
             beginid++;
-
-            str += '\r\n';
         }
     });
+
+    str += code.alignCode(arr, '\t');
 
     str += '}\r\n'
 
