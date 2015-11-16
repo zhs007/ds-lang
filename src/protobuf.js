@@ -41,8 +41,9 @@ function exportEnumMsgID(lstreq, reqid, lstres, resid) {
 
     str += '\t//--------------------------------------------------------------------------- \r\n';
     str += '\t// 服务器发送的消息 \r\n';
+    arr = [[], [], []];
     for (var i = 0; i < lstres.length; ++i) {
-        arr[0].push(buildEnumReqMemberName(lstres[i].name));
+        arr[0].push(buildEnumResMemberName(lstres[i].name));
         arr[1].push('= ' + resid + ';');
         arr[2].push('// ' + lstres[i].comment);
         resid++;

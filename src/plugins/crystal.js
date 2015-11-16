@@ -198,7 +198,9 @@ function clientcpp_exportCSVLoader(memberobj, root, callback, option) {
 function clientcpp_getTemplate(projname, option) {
     return [
         {filename: 'logicdata.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/logicdata.h'), 'utf-8')},
-        {filename: 'logicdata.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/logicdata.cpp'), 'utf-8')}
+        {filename: 'logicdata.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/logicdata.cpp'), 'utf-8')},
+        {filename: 'csvloader.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/csvloader.h'), 'utf-8')},
+        {filename: 'csvloader.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/csvloader.cpp'), 'utf-8')}
     ];
 }
 
