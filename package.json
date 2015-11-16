@@ -40,7 +40,8 @@
     "shelljs": "*",
     "yargs": "*",
     "glob": "*",
-    "node-xlsx": "*"
+    "node-xlsx": "*",
+    "handlebars": "*"
   },
   "license": "MIT",
   "readmeFilename": "README.md"

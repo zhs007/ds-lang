@@ -26,10 +26,15 @@ why
 
 更新说明
 ---
+* **0.5.2**
+ * 使用**[handlebars](https://github.com/wycats/handlebars.js/)**重构代码生成部分。
+
 * **0.5.1**
  * 代码生成时，对齐代码。
  * 调整了代码生成器插件的部分接口。
  * 支持crystal框架的代码生成。
+ * 代码生成插件支持多文件的生成。
+ * 支持crystal导出C++客户端代码。
 
 * **0.5.0**
  * 加入代码生成功能。
@@ -382,6 +387,7 @@ ds-lang的二次开发有2种方式：
 使用到的第三方库
 ---
 
-* 使用[jison](https://github.com/zaach/jison)做语法分析。
-* 使用[yargs](https://github.com/bcoe/yargs)模块简化命令行工具的开发。
-* 使用[node-xlsx](https://github.com/mgcrea/node-xlsx)模块生成xlsx文件。
+* 使用**[jison](https://github.com/zaach/jison)**做语法分析。
+* 使用**[yargs](https://github.com/bcoe/yargs)**模块简化命令行工具的开发。
+* 使用**[node-xlsx](https://github.com/mgcrea/node-xlsx)**模块生成xlsx文件。
+* 使用**[handlebars](https://github.com/wycats/handlebars.js/)**模板做基本代码模板。

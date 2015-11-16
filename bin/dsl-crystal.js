@@ -50,15 +50,13 @@ if (root == undefined) {
 }
 
 if (argv.clientcpp) {
-    var str = code.exportCode(root, plugins.plugins_clientcpp, '_ClientData', function (isok, errinfo) {
+    var filearr = code.exportCode(filename, root, plugins.plugins_clientcpp, '_ClientData', function (isok, errinfo) {
         if (!isok) {
             console.log('clientcpp err : ' + errinfo);
 
             process.exit(1);
         }
-    }, true);
+    }, {isclient: true});
 
-    fs.writeFileSync(filename + '.h', str, 'utf-8');
-
-    console.log(filename + '.h OK!');
+    //console.log(filename + '.h OK!');
 }

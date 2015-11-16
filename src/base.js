@@ -265,6 +265,49 @@ function loadJson(filename) {
     return undefined;
 }
 
+//function isStaticStruct(name, root) {
+//    var obj = getGlobalObj(name, root);
+//    if (obj != undefined) {
+//        if (obj.type == 'static') {
+//            return true;
+//        }
+//
+//        if (obj.type == 'struct') {
+//            for (var i = 0; i < obj.val.length; ++i) {
+//                if (isBaseType(obj.val[i].type)) {
+//                    if (!(obj.val[i].hasOwnProperty('type2') && obj.val[i].type2 == 'primary')) {
+//                        return false;
+//                    }
+//                }
+//                else {
+//                    if (!isStaticStruct(obj.val[i].type, root)) {
+//                        return false;
+//                    }
+//                }
+//            }
+//
+//            return true;
+//        }
+//    }
+//
+//    return false;
+//}
+
+function getStructMemberType(membername, structname, root) {
+    var obj = getGlobalObj(structname, root);
+    if (obj != undefined) {
+        if (obj.type == 'message' || obj.type == 'struct' || obj.type == 'static') {
+            for (var i = 0; i < obj.val.length; ++i) {
+                if (obj.val[i].name.name == membername) {
+                    return obj.val[i].type;
+                }
+            }
+        }
+    }
+
+    return undefined;
+}
+
 exports.isBaseType = isBaseType;
 exports.isType = isType;
 exports.getRealType = getRealType;
@@ -283,3 +326,5 @@ exports.forEachStruct = forEachStruct;
 exports.countGlobalObj = countGlobalObj;
 exports.getNoUnderscoreName = getNoUnderscoreName;
 exports.loadJson = loadJson;
+//exports.isStaticStruct = isStaticStruct;
+exports.getStructMemberType = getStructMemberType;
