@@ -4,6 +4,7 @@
 
 var base = require('./base');
 var fs = require('fs');
+var handlebars = require('handlebars');
 
 function addExportObj(obj, root, lstexport, option) {
     if (base.isBaseType(obj.type)) {
@@ -68,6 +69,26 @@ function procStaticTable(objname, root, option) {
     return obj;
 }
 
+function replaceStr(str) {
+    while(str.indexOf('&lt;') >= 0) {
+        str = str.replace('&lt;', '<');
+    }
+
+    while(str.indexOf('&gt;') >= 0) {
+        str = str.replace('&gt;', '>');
+    }
+
+    while(str.indexOf('&quot;') >= 0) {
+        str = str.replace('&quot;', '"');
+    }
+
+    while(str.indexOf('&#x3D;') >= 0) {
+        str = str.replace('&#x3D;', '=');
+    }
+
+    return str;
+}
+
 // plugins = {exportHead: func, exportEnd: func, exportTypedef: func, exportEnum: func, exportStruct: func, exportStatic: func, getExportFile: func}
 // callback(isok, errinfo)
 function exportCode(projname, root, plugins, objname, callback, option) {
@@ -91,21 +112,25 @@ function exportCode(projname, root, plugins, objname, callback, option) {
     procStaticTable(objname, root, option);
 
     if (plugins != undefined) {
-        var filearr = plugins.getExportFile(projname, option);
-        for (var fi = 0; fi < filearr.length; ++fi) {
-            var curfile = filearr[fi];
-            var str = '';
+        if (!fs.existsSync(projname)) {
+            fs.mkdirSync(projname);
+        }
 
-            str += plugins.exportHead(curfile, projname, option);
+        var tmparr = plugins.getTemplate(projname, option);
+        if (tmparr != undefined) {
+            var curparams = {projname_up: projname.toUpperCase()};
 
-            str += '\r\n\r\n';
+            //------------------------------------------------------------------------------------
+            // typedef
+
+            curparams.block_typedef = [];
 
             var typedefarr = undefined;
             for (var i = 0; i < lstexport.length; ++i) {
                 var obj = base.getGlobalObj(lstexport[i], root);
                 if (obj != undefined) {
                     if (obj.type == 'type') {
-                        var cs = plugins.exportTypedef(curfile, obj, root, callback, option);
+                        var cs = plugins.exportTypedef(obj, root, callback, option);
                         if (cs != undefined) {
                             if (typedefarr == undefined) {
                                 typedefarr = [];
@@ -123,56 +148,80 @@ function exportCode(projname, root, plugins, objname, callback, option) {
             }
 
             if (typedefarr != undefined) {
-                str += alignCode(typedefarr, '');
-                str += '\r\n';
+                curparams.block_typedef = alignCodeEx(typedefarr, '');
             }
+
+            //------------------------------------------------------------------------------------
+            // enum
+
+            curparams.block_enum = [];
 
             for (var i = 0; i < lstexport.length; ++i) {
                 var obj = base.getGlobalObj(lstexport[i], root);
                 if (obj != undefined) {
                     if (obj.type == 'enum') {
-                        var cs = plugins.exportEnum(curfile, obj, root, callback, option);
-                        if (cs != undefined) {
-                            str += cs;
-                            str += '\r\n';
+                        var enumobj = plugins.exportEnum(obj, root, callback, option);
+                        if (enumobj != undefined) {
+                            curparams.block_enum.push(enumobj);
                         }
                     }
                 }
             }
+
+            //------------------------------------------------------------------------------------
+            // struct
+
+            curparams.block_struct = [];
+            curparams.csvloader = [];
 
             for (var i = 0; i < lstexport.length; ++i) {
                 var obj = base.getGlobalObj(lstexport[i], root);
                 if (obj != undefined) {
-                    if (obj.type == 'struct') {
-                        var cs = plugins.exportStruct(curfile, obj, root, callback, option);
-                        if (cs != undefined) {
-                            str += cs;
-                            str += '\r\n';
+                    if (obj.name == objname) {
+                        var mainobj = plugins.exportMainObj(obj, root, callback, option);
+                        if (mainobj != undefined) {
+                            curparams.mainobj = mainobj;
+                        }
+
+                        base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
+                            if (option.isclient) {
+                                if (cobj.name.name.indexOf('_') == 0) {
+                                    return;
+                                }
+                            }
+
+                            if (base.isStatic(cobj.type, root)) {
+                                var csvloader = plugins.exportCSVLoader(cobj, root, callback, option);
+                                if (csvloader != undefined) {
+                                    curparams.csvloader.push(csvloader);
+                                }
+                            }
+                        });
+                    }
+                    else if (obj.type == 'struct') {
+                        var structobj = plugins.exportStruct(obj, root, callback, option);
+                        if (structobj != undefined) {
+                            curparams.block_struct.push(structobj);
                         }
                     }
                     else if (obj.type == 'static') {
-                        var cs = plugins.exportStatic(curfile, obj, root, callback, option);
-                        if (cs != undefined) {
-                            str += cs;
-                            str += '\r\n';
+                        var structobj = plugins.exportStatic(obj, root, callback, option);
+                        if (structobj != undefined) {
+                            curparams.block_struct.push(structobj);
                         }
                     }
                 }
             }
 
-            str += '\r\n\r\n';
-
-            var cs = plugins.exportEnd(curfile, projname, option);
-            if (cs != undefined) {
-                str += cs;
+            for (var ti = 0; ti < tmparr.length; ++ti) {
+                var curtemplate = handlebars.compile(tmparr[ti].buff);
+                var strbuf = curtemplate(curparams);
+                strbuf = replaceStr(strbuf);
+                fs.writeFileSync(projname + '/' + tmparr[ti].filename, strbuf, 'utf-8');
             }
-
-            fs.writeFileSync(curfile.filename, str, 'utf-8');
-
-            console.log(curfile.filename + ' OK!');
         }
 
-        return filearr;
+        return tmparr;
     }
 
     return undefined;
@@ -212,5 +261,40 @@ function alignCode(arr, beginstr) {
     return str;
 }
 
+function alignCodeEx(arr, beginstr) {
+    var strarr = [];
+    var lenarr = [];
+
+    for (var i = 0; i < arr.length; ++i) {
+        var cl = 0;
+        for (var j = 0; j < arr[i].length; ++j) {
+            if (cl < arr[i][j].length) {
+                cl = arr[i][j].length;
+            }
+        }
+
+        lenarr.push(cl);
+    }
+
+    for (var i = 0; i < arr[0].length; ++i) {
+        strarr.push('');
+
+        strarr[i] += beginstr;
+
+        for (var j = 0; j < arr.length; ++j) {
+            strarr[i] += arr[j][i];
+
+            if (j < arr.length - 1) {
+                for (k = arr[j][i].length; k < lenarr[j] + 1; ++k) {
+                    strarr[i] += ' ';
+                }
+            }
+        }
+    }
+
+    return strarr;
+}
+
 exports.exportCode = exportCode;
 exports.alignCode = alignCode;
+exports.alignCodeEx = alignCodeEx;
