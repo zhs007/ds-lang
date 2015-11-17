@@ -14,7 +14,7 @@ function exportTable(obj, callback, root) {
     if (obj.type == 'struct') {
         var isautoinc = false;
         var autoincval = 1;
-        var str = "--" + obj.comment + '\r\n';
+        var str = "-- " + obj.comment + '\r\n';
         str += "CREATE TABLE IF NOT EXISTS `" + getTableName(obj.name) + "` (" + '\r\n';
 
         var lastcomment = '';
@@ -131,7 +131,7 @@ function exportTable(obj, callback, root) {
             }
 
             tarr[0].push(cstr);
-            tarr[1].push('--' + lstmember[i].comment);
+            tarr[1].push('-- ' + lstmember[i].comment);
         }
 
         str += code.alignCode(tarr, '  ');

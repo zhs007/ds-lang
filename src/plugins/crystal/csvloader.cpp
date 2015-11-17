@@ -1,3 +1,5 @@
+// auto-write by dsl-crystal
+
 #include "csvloader.h"
 #include "cocos2d.h"
 

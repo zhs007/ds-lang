@@ -200,7 +200,11 @@ function clientcpp_getTemplate(projname, option) {
         {filename: 'logicdata.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/logicdata.h'), 'utf-8')},
         {filename: 'logicdata.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/logicdata.cpp'), 'utf-8')},
         {filename: 'csvloader.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/csvloader.h'), 'utf-8')},
-        {filename: 'csvloader.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/csvloader.cpp'), 'utf-8')}
+        {filename: 'csvloader.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/csvloader.cpp'), 'utf-8')},
+        {filename: 'wsclient.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/wsclient.h'), 'utf-8')},
+        {filename: 'wsclient.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/wsclient.cpp'), 'utf-8')},
+        {filename: 'lockimp.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/lockimp.h'), 'utf-8')},
+        {filename: 'lockimp.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/lockimp.cpp'), 'utf-8')}
     ];
 }
 

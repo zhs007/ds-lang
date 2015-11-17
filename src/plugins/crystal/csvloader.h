@@ -1,3 +1,5 @@
+// auto-write by dsl-crystal
+
 #ifndef __{{projname_up}}_CRYSTAL_CSVLOADER_H__
 #define __{{projname_up}}_CRYSTAL_CSVLOADER_H__
 

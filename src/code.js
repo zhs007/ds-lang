@@ -118,7 +118,7 @@ function exportCode(projname, root, plugins, objname, callback, option) {
 
         var tmparr = plugins.getTemplate(projname, option);
         if (tmparr != undefined) {
-            var curparams = {projname_up: projname.toUpperCase()};
+            var curparams = {projname_up: projname.toUpperCase(), projname: projname};
 
             //------------------------------------------------------------------------------------
             // typedef
