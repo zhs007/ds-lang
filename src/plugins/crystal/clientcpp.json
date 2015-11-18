@@ -1,0 +1,10 @@
+[
+{"filename": "logicdata.h", "srcfile": "/crystal/logicdata.h"},
+{"filename": "logicdata.cpp", "srcfile": "/crystal/logicdata.cpp"},
+{"filename": "csvloader.h", "srcfile": "/crystal/csvloader.h"},
+{"filename": "csvloader.cpp", "srcfile": "/crystal/csvloader.cpp"},
+{"filename": "wsclient.h", "srcfile": "/crystal/wsclient.h"},
+{"filename": "wsclient.cpp", "srcfile": "/crystal/wsclient.cpp"},
+{"filename": "lockimp.h", "srcfile": "/crystal/lockimp.h"},
+{"filename": "lockimp.cpp", "srcfile": "/crystal/lockimp.cpp"}
+]

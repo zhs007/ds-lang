@@ -6,7 +6,7 @@
 // 客户端数据
 
 // getSingleton
-static {{mainobj.name}}& {{mainobj.name}}::getSingleton()
+{{mainobj.name}}& {{mainobj.name}}::getSingleton()
 {
     static {{mainobj.name}} s_obj;
     return s_obj;
@@ -22,7 +22,7 @@ static {{mainobj.name}}& {{mainobj.name}}::getSingleton()
         csvloader.load("{{filename}}");
         for (int y = 0; y < csvloader.getHeight(); ++y)
         {
-            std::map<{{keytype}}, {{typename}}> val;
+            std::pair<{{keytype}}, {{typename}}> val;
             {{#each member}}
             {{this}}
             {{/each}}

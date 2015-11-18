@@ -273,16 +273,7 @@ function clientcpp_exportOnMsg(msgobj, root, callback, option) {
 }
 
 function clientcpp_getTemplate(projname, option) {
-    return [
-        {filename: 'logicdata.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/logicdata.h'), 'utf-8')},
-        {filename: 'logicdata.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/logicdata.cpp'), 'utf-8')},
-        {filename: 'csvloader.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/csvloader.h'), 'utf-8')},
-        {filename: 'csvloader.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/csvloader.cpp'), 'utf-8')},
-        {filename: 'wsclient.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/wsclient.h'), 'utf-8')},
-        {filename: 'wsclient.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/wsclient.cpp'), 'utf-8')},
-        {filename: 'lockimp.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/lockimp.h'), 'utf-8')},
-        {filename: 'lockimp.cpp', buff: fs.readFileSync(path.join(__dirname, '/crystal/lockimp.cpp'), 'utf-8')}
-    ];
+    return '/crystal/clientcpp.json';
 }
 
 exports.plugins_clientcpp = {
@@ -295,4 +286,177 @@ exports.plugins_clientcpp = {
     exportSendMsg: clientcpp_exportSendMsg,
     exportOnMsg: clientcpp_exportOnMsg,
     getTemplate: clientcpp_getTemplate
+};
+
+
+
+
+// callback(isok, errinfo)
+function servjs_exportTypedef(obj, root, callback, option) {
+    return ;
+}
+
+// callback(isok, errinfo)
+function servjs_exportEnum(obj, root, callback, option) {
+    var enumobj = {name: obj.name, comment: obj.comment, member: []};
+    var arr = [[], [], []];
+
+    for (var i = 0; i < obj.val.length; ++i) {
+        arr[0].push('exports.' + obj.val[i].name);
+        arr[1].push('= ' + obj.val[i].val.val + ';');
+        arr[2].push('//' + obj.val[i].comment);
+    }
+
+    enumobj.member = code.alignCodeEx(arr, '');
+
+    return enumobj;
+}
+
+// callback(isok, errinfo)
+function servjs_exportStruct(obj, root, callback, option) {
+    return ;
+}
+
+// callback(isok, errinfo)
+function servjs_exportStatic(obj, root, callback, option) {
+    return ;
+}
+
+// callback(isok, errinfo)
+function servjs_exportMainObj(obj, root, callback, option) {
+    var mainobj = {name: base.getNoUnderscoreName(obj.name), comment: obj.comment, member: []};
+    var arr = [[], []];
+
+    base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
+        if (option.isclient) {
+            if (cobj.name.name.indexOf('_') == 0) {
+                return ;
+            }
+        }
+
+        if (cobj.hasOwnProperty('type2')) {
+            if (cobj.type2 == 'repeated') {
+                arr[0].push('std::vector<' + base.getNoUnderscoreName(getCPPType(cobj.type)) + '> ' + base.getNoUnderscoreName(cobj.name.name) + ';');
+                arr[1].push('// ' + cobj.comment);
+
+                return ;
+            }
+            else if(cobj.type2 == 'map') {
+                arr[0].push('std::map<' + base.getStructMemberType(cobj.memberkey, cobj.type, root) + ', ' + base.getNoUnderscoreName(getCPPType(cobj.type)) + '> ' + base.getNoUnderscoreName(cobj.name.name) + ';');
+                arr[1].push('// ' + cobj.comment);
+
+                return ;
+            }
+        }
+
+        arr[0].push(base.getNoUnderscoreName(getCPPType(cobj.type)) + ' ' + base.getNoUnderscoreName(cobj.name.name) + ';');
+        arr[1].push('// ' + cobj.comment);
+    });
+
+    mainobj.member = code.alignCodeEx(arr, '');
+
+    return mainobj;
+}
+
+function servjs_exportCSVLoader(memberobj, root, callback, option) {
+    var csvloader = {
+        name: memberobj.name.name,
+        filename: base.getMemberName(memberobj.type) + '.csv',
+        keytype: base.getStructMemberType(memberobj.memberkey, memberobj.type, root),
+        typename: base.getNoUnderscoreName(getCPPType(memberobj.type)),
+        memberkey: memberobj.memberkey,
+        member: []
+    };
+
+    base.forEachStruct(memberobj.type, base.getGlobalObj(memberobj.type, root), root, function (staticname, scobj, root) {
+        if (option.isclient) {
+            if (scobj.name.name.indexOf('_') == 0) {
+                return;
+            }
+        }
+
+        var scvt = base.getRealType(scobj.type, root);
+        if (scvt == 'string') {
+            csvloader.member.push('val.second.' + scobj.name.name + ' = csvloader.get("' + scobj.name.name + '", y);');
+        }
+        else {
+            csvloader.member.push('val.second.' + scobj.name.name + ' = csvloader.get_int("' + scobj.name.name + '", y);');
+        }
+    });
+
+    return csvloader;
+}
+
+function servjs_exportSendMsg(msgobj, root, callback, option) {
+    var msg = {
+        msgname: msgobj.name,
+        rname: base.getRealMsgName(msgobj.name),
+        comment: msgobj.comment,
+        funcparam: '',
+        msgid: 'MSGID_REQ_' + base.getRealMsgName(msgobj.name).toUpperCase(),
+        member: []
+    };
+
+    var isfirst = true;
+
+    base.forEachStruct(msgobj.name, base.getGlobalObj(msgobj.name, root), root, function (staticname, scobj, root) {
+        if (option.isclient) {
+            if (scobj.name.name.indexOf('_') == 0) {
+                return;
+            }
+        }
+
+        if (!isfirst) {
+            msg.funcparam += ', ';
+        }
+
+        isfirst = false;
+
+        msg.funcparam += getCPPType_funcparam(scobj.type, root);
+        msg.funcparam += ' ' + scobj.name.name;
+
+        msg.member.push({name: scobj.name.name, type: scobj.type});
+    });
+
+    return msg;
+}
+
+function servjs_exportOnMsg(msgobj, root, callback, option) {
+    var msg = {
+        msgname: msgobj.name,
+        rname: base.getRealMsgName(msgobj.name),
+        comment: msgobj.comment,
+        msgid: 'MSGID_RES_' + base.getRealMsgName(msgobj.name).toUpperCase(),
+        member: []
+    };
+
+    base.forEachStruct(msgobj.name, base.getGlobalObj(msgobj.name, root), root, function (staticname, scobj, root) {
+        if (option.isclient) {
+            if (scobj.name.name.indexOf('_') == 0) {
+                return;
+            }
+        }
+
+        if (scobj.name.hasOwnProperty('data')) {
+            msg.member.push({name: scobj.name.name, type: scobj.type, data: scobj.name.data});
+        }
+    });
+
+    return msg;
+}
+
+function servjs_getTemplate(projname, option) {
+    return '/crystal/servjs.json';
+}
+
+exports.plugins_servjs = {
+    exportTypedef: servjs_exportTypedef,
+    exportEnum: servjs_exportEnum,
+    exportStruct: servjs_exportStruct,
+    exportStatic: servjs_exportStatic,
+    exportMainObj: servjs_exportMainObj,
+    exportCSVLoader: servjs_exportCSVLoader,
+    exportSendMsg: servjs_exportSendMsg,
+    exportOnMsg: servjs_exportOnMsg,
+    getTemplate: servjs_getTemplate
 };

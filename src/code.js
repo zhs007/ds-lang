@@ -3,6 +3,7 @@
  */
 
 var base = require('./base');
+var path = require('path');
 var fs = require('fs');
 var handlebars = require('handlebars');
 
@@ -121,127 +122,133 @@ function exportCode(projname, root, plugins, objname, callback, option) {
             fs.mkdirSync(projname);
         }
 
-        var tmparr = plugins.getTemplate(projname, option);
-        if (tmparr != undefined) {
-            var curparams = {projname_up: projname.toUpperCase(), projname: projname};
+        var curparams = {projname_up: projname.toUpperCase(), projname: projname};
 
-            //------------------------------------------------------------------------------------
-            // typedef
+        //------------------------------------------------------------------------------------
+        // typedef
 
-            curparams.block_typedef = [];
+        curparams.block_typedef = [];
 
-            var typedefarr = undefined;
-            for (var i = 0; i < lstexport.length; ++i) {
-                var obj = base.getGlobalObj(lstexport[i], root);
-                if (obj != undefined) {
-                    if (obj.type == 'type') {
-                        var cs = plugins.exportTypedef(obj, root, callback, option);
-                        if (cs != undefined) {
-                            if (typedefarr == undefined) {
-                                typedefarr = [];
-                                for (var ai = 0; ai < cs.length; ++ai) {
-                                    typedefarr.push([]);
-                                }
-                            }
-
+        var typedefarr = undefined;
+        for (var i = 0; i < lstexport.length; ++i) {
+            var obj = base.getGlobalObj(lstexport[i], root);
+            if (obj != undefined) {
+                if (obj.type == 'type') {
+                    var cs = plugins.exportTypedef(obj, root, callback, option);
+                    if (cs != undefined) {
+                        if (typedefarr == undefined) {
+                            typedefarr = [];
                             for (var ai = 0; ai < cs.length; ++ai) {
-                                typedefarr[ai].push(cs[ai]);
+                                typedefarr.push([]);
                             }
                         }
-                    }
-                }
-            }
 
-            if (typedefarr != undefined) {
-                curparams.block_typedef = alignCodeEx(typedefarr, '');
-            }
-
-            //------------------------------------------------------------------------------------
-            // enum
-
-            curparams.block_enum = [];
-
-            for (var i = 0; i < lstexport.length; ++i) {
-                var obj = base.getGlobalObj(lstexport[i], root);
-                if (obj != undefined) {
-                    if (obj.type == 'enum') {
-                        var enumobj = plugins.exportEnum(obj, root, callback, option);
-                        if (enumobj != undefined) {
-                            curparams.block_enum.push(enumobj);
+                        for (var ai = 0; ai < cs.length; ++ai) {
+                            typedefarr[ai].push(cs[ai]);
                         }
                     }
                 }
             }
+        }
 
-            //------------------------------------------------------------------------------------
-            // struct
+        if (typedefarr != undefined) {
+            curparams.block_typedef = alignCodeEx(typedefarr, '');
+        }
 
-            curparams.block_struct = [];
-            curparams.csvloader = [];
+        //------------------------------------------------------------------------------------
+        // enum
 
-            for (var i = 0; i < lstexport.length; ++i) {
-                var obj = base.getGlobalObj(lstexport[i], root);
-                if (obj != undefined) {
-                    if (obj.name == objname) {
-                        var mainobj = plugins.exportMainObj(obj, root, callback, option);
-                        if (mainobj != undefined) {
-                            curparams.mainobj = mainobj;
-                        }
+        curparams.block_enum = [];
 
-                        base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
-                            if (option.isclient) {
-                                if (cobj.name.name.indexOf('_') == 0) {
-                                    return;
-                                }
+        for (var i = 0; i < lstexport.length; ++i) {
+            var obj = base.getGlobalObj(lstexport[i], root);
+            if (obj != undefined) {
+                if (obj.type == 'enum') {
+                    var enumobj = plugins.exportEnum(obj, root, callback, option);
+                    if (enumobj != undefined) {
+                        curparams.block_enum.push(enumobj);
+                    }
+                }
+            }
+        }
+
+        //------------------------------------------------------------------------------------
+        // struct
+
+        curparams.block_struct = [];
+        curparams.csvloader = [];
+
+        for (var i = 0; i < lstexport.length; ++i) {
+            var obj = base.getGlobalObj(lstexport[i], root);
+            if (obj != undefined) {
+                if (obj.name == objname) {
+                    var mainobj = plugins.exportMainObj(obj, root, callback, option);
+                    if (mainobj != undefined) {
+                        curparams.mainobj = mainobj;
+                    }
+
+                    base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
+                        if (option.isclient) {
+                            if (cobj.name.name.indexOf('_') == 0) {
+                                return;
                             }
+                        }
 
-                            if (base.isStatic(cobj.type, root)) {
-                                var csvloader = plugins.exportCSVLoader(cobj, root, callback, option);
-                                if (csvloader != undefined) {
-                                    curparams.csvloader.push(csvloader);
-                                }
+                        if (base.isStatic(cobj.type, root)) {
+                            var csvloader = plugins.exportCSVLoader(cobj, root, callback, option);
+                            if (csvloader != undefined) {
+                                curparams.csvloader.push(csvloader);
                             }
-                        });
-                    }
-                    else if (obj.type == 'struct') {
-                        var structobj = plugins.exportStruct(obj, root, callback, option);
-                        if (structobj != undefined) {
-                            curparams.block_struct.push(structobj);
                         }
+                    });
+                }
+                else if (obj.type == 'struct') {
+                    var structobj = plugins.exportStruct(obj, root, callback, option);
+                    if (structobj != undefined) {
+                        curparams.block_struct.push(structobj);
                     }
-                    else if (obj.type == 'static') {
-                        var structobj = plugins.exportStatic(obj, root, callback, option);
-                        if (structobj != undefined) {
-                            curparams.block_struct.push(structobj);
-                        }
+                }
+                else if (obj.type == 'static') {
+                    var structobj = plugins.exportStatic(obj, root, callback, option);
+                    if (structobj != undefined) {
+                        curparams.block_struct.push(structobj);
                     }
                 }
             }
+        }
 
-            //------------------------------------------------------------------------------------
-            // message
+        //------------------------------------------------------------------------------------
+        // message
 
-            curparams.block_sendmsg = [];
-            curparams.block_onmsg = [];
+        curparams.block_sendmsg = [];
+        curparams.block_onmsg = [];
 
-            for (var i = 0; i < root.length; ++i) {
-                if (root[i].type == 'message') {
-                    if (base.isReqMsg(root[i].name)) {
-                        var co = plugins.exportSendMsg(root[i], root, callback, option);
-                        curparams.block_sendmsg.push(co);
-                    }
-                    else if (base.isResMsg(root[i].name)) {
-                        var co = plugins.exportOnMsg(root[i], root, callback, option);
-                        curparams.block_onmsg.push(co);
-                    }
+        for (var i = 0; i < root.length; ++i) {
+            if (root[i].type == 'message') {
+                if (base.isReqMsg(root[i].name)) {
+                    var co = plugins.exportSendMsg(root[i], root, callback, option);
+                    curparams.block_sendmsg.push(co);
+                }
+                else if (base.isResMsg(root[i].name)) {
+                    var co = plugins.exportOnMsg(root[i], root, callback, option);
+                    curparams.block_onmsg.push(co);
                 }
             }
+        }
 
-            //------------------------------------------------------------------------------------
-            // template
+        //------------------------------------------------------------------------------------
+        // template
 
+        var tmpfilename = plugins.getTemplate(projname, option);
+        var tmpbuf = fs.readFileSync(path.join(__dirname, 'plugins', tmpfilename), 'utf-8');
+        var tmphb = handlebars.compile(tmpbuf);
+        tmpbuf = tmphb(curparams);
+        tmpbuf = replaceStr(tmpbuf);
+        var tmparr = JSON.parse(tmpbuf);
+        if (tmparr != undefined) {
             for (var ti = 0; ti < tmparr.length; ++ti) {
-                var curtemplate = handlebars.compile(tmparr[ti].buff);
+                var curtmpbuf = fs.readFileSync(path.join(__dirname, 'plugins', tmparr[ti].srcfile), 'utf-8');
+                var curtemplate = handlebars.compile(curtmpbuf);
                 var strbuf = curtemplate(curparams);
                 strbuf = replaceStr(strbuf);
                 fs.writeFileSync(projname + '/' + tmparr[ti].filename, strbuf, 'utf-8');
