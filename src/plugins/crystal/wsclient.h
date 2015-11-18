@@ -25,23 +25,27 @@ public:
     void forceClose();
 
     //!发消息
-    void sendMsg(int len, unsigned char* buff);
+    void send(int len, unsigned char* buff);
+    //!发消息
+    void sendMsg(slots3::MSGID msgid, int len, unsigned char* buff);
 public:
-{{#each block_sendmsg_def}}
+{{#each block_sendmsg}}
     // {{comment}}
-    {{defcode}}
+    void sendMsg_{{rname}}({{funcparam}});
 {{/each}}
 protected:
-{{#each block_onmsg_def}}
+{{#each block_onmsg}}
     // {{comment}}
-    {{defcode}}
+    void onMsg_{{rname}}({{../projname}}::{{msgname}}& msg);
 {{/each}}
 protected:
     void release();
 
     void reconnect();
 
-    void onProcMsg(slots3::ServiceMsg& msg);
+    void onProcServiceMsg(slots3::ServiceMsg& msg);
+
+    void onProcBaseMsg(slots3::BaseMsg& msg);
 
     void procRecvMessage(network::WebSocket* ws, const network::WebSocket::Data& data, int begin);
 

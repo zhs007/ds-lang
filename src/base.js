@@ -51,7 +51,8 @@ function isType(str, root) {
     return false;
 }
 
-function getRealType(str, root) {
+
+function getRealType_Enum(str, root) {
     if (isBaseType(str)) {
         return str;
     }
@@ -60,6 +61,30 @@ function getRealType(str, root) {
         if (root[i].name == str) {
             if (root[i].type == 'enum') {
                 return 'int';
+            }
+
+            if (root[i].type == 'struct' || root[i].type == 'message' || root[i].type == 'static') {
+                return root[i].name;
+            }
+
+            if (root[i].type == 'type') {
+                return getRealType_Enum(root[i].val);
+            }
+        }
+    }
+
+    return '[ERR]';
+}
+
+function getRealType(str, root) {
+    if (isBaseType(str)) {
+        return str;
+    }
+
+    for (var i = 0; i < root.length; ++i) {
+        if (root[i].name == str) {
+            if (root[i].type == 'enum') {
+                return root[i].name;
             }
 
             if (root[i].type == 'struct' || root[i].type == 'message' || root[i].type == 'static') {
@@ -308,9 +333,37 @@ function getStructMemberType(membername, structname, root) {
     return undefined;
 }
 
+function isResMsg(name) {
+    return name.indexOf('Res_') == 0;
+}
+
+function isReqMsg(name) {
+    return name.indexOf('Req_') == 0;
+}
+
+function getRealMsgName(name) {
+    if (isResMsg(name)) {
+        return name.slice(4);
+    }
+    else if (isReqMsg(name)) {
+        return name.slice(4);
+    }
+
+    return name;
+}
+
+function buildEnumReqMemberName(name) {
+    return 'MSGID_REQ_' + name.slice(4).toUpperCase();
+}
+
+function buildEnumResMemberName(name) {
+    return 'MSGID_RES_' + name.slice(4).toUpperCase();
+}
+
 exports.isBaseType = isBaseType;
 exports.isType = isType;
 exports.getRealType = getRealType;
+exports.getRealType_Enum = getRealType_Enum;
 exports.getMemberName = getMemberName;
 exports.isEnum = isEnum;
 exports.isStruct = isStruct;
@@ -328,3 +381,8 @@ exports.getNoUnderscoreName = getNoUnderscoreName;
 exports.loadJson = loadJson;
 //exports.isStaticStruct = isStaticStruct;
 exports.getStructMemberType = getStructMemberType;
+exports.isResMsg = isResMsg;
+exports.getRealMsgName = getRealMsgName;
+exports.isReqMsg = isReqMsg;
+exports.buildEnumReqMemberName = buildEnumReqMemberName;
+exports.buildEnumResMemberName = buildEnumResMemberName;

@@ -5,22 +5,6 @@
 var base = require('./base');
 var code = require('./code');
 
-function isResMsg(name) {
-    return name.indexOf('Res_') == 0;
-}
-
-function isReqMsg(name) {
-    return name.indexOf('Req_') == 0;
-}
-
-function buildEnumReqMemberName(name) {
-    return 'MSGID_REQ_' + name.slice(4).toUpperCase();
-}
-
-function buildEnumResMemberName(name) {
-    return 'MSGID_RES_' + name.slice(4).toUpperCase();
-}
-
 function exportEnumMsgID(lstreq, reqid, lstres, resid) {
     var str = '// 消息ID定义 \r\n';
     str += 'enum MSGID {\r\n\r\n';
@@ -29,7 +13,7 @@ function exportEnumMsgID(lstreq, reqid, lstres, resid) {
     str += '\t// 客户端发送的消息 \r\n';
     var arr = [[], [], []];
     for (var i = 0; i < lstreq.length; ++i) {
-        arr[0].push(buildEnumReqMemberName(lstreq[i].name));
+        arr[0].push(base.buildEnumReqMemberName(lstreq[i].name));
         arr[1].push('= ' + reqid + ';');
         arr[2].push('// ' + lstreq[i].comment);
         reqid++;
@@ -43,7 +27,7 @@ function exportEnumMsgID(lstreq, reqid, lstres, resid) {
     str += '\t// 服务器发送的消息 \r\n';
     arr = [[], [], []];
     for (var i = 0; i < lstres.length; ++i) {
-        arr[0].push(buildEnumResMemberName(lstres[i].name));
+        arr[0].push(base.buildEnumResMemberName(lstres[i].name));
         arr[1].push('= ' + resid + ';');
         arr[2].push('// ' + lstres[i].comment);
         resid++;
@@ -184,10 +168,10 @@ function exportProtobuf(pkgname, obj, callback) {
 
         for (var i = 0; i < obj.length; ++i) {
             if (obj[i].type == 'message') {
-                if (isResMsg(obj[i].name)) {
+                if (base.isResMsg(obj[i].name)) {
                     lstres.push({name: obj[i].name, comment: obj[i].comment});
                 }
-                else if (isReqMsg(obj[i].name)) {
+                else if (base.isReqMsg(obj[i].name)) {
                     lstreq.push({name: obj[i].name, comment: obj[i].comment});
                 }
             }

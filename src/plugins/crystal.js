@@ -20,6 +20,25 @@ function getCPPType(name) {
     return name;
 }
 
+function getCPPType_funcparam(name, root) {
+    var rtype = base.getRealType(name, root);
+    if (base.isBaseType(rtype)) {
+        if (name == 'time') {
+            return 'time_t';
+        }
+        else if (name == 'string') {
+            return 'const char*';
+        }
+
+        return name;
+    }
+    else if (base.isEnum(rtype, root)) {
+        return rtype;
+    }
+
+    return name + '&';
+}
+
 // callback(isok, errinfo)
 function clientcpp_exportTypedef(obj, root, callback, option) {
     var arr = ['typedef ' + obj.val + ' ' + obj.name + ';', '// ' + obj.comment];
@@ -195,6 +214,64 @@ function clientcpp_exportCSVLoader(memberobj, root, callback, option) {
     return csvloader;
 }
 
+function clientcpp_exportSendMsg(msgobj, root, callback, option) {
+    var msg = {
+        msgname: msgobj.name,
+        rname: base.getRealMsgName(msgobj.name),
+        comment: msgobj.comment,
+        funcparam: '',
+        msgid: 'MSGID_REQ_' + base.getRealMsgName(msgobj.name).toUpperCase(),
+        member: []
+    };
+
+    var isfirst = true;
+
+    base.forEachStruct(msgobj.name, base.getGlobalObj(msgobj.name, root), root, function (staticname, scobj, root) {
+        if (option.isclient) {
+            if (scobj.name.name.indexOf('_') == 0) {
+                return;
+            }
+        }
+
+        if (!isfirst) {
+            msg.funcparam += ', ';
+        }
+
+        isfirst = false;
+
+        msg.funcparam += getCPPType_funcparam(scobj.type, root);
+        msg.funcparam += ' ' + scobj.name.name;
+
+        msg.member.push({name: scobj.name.name, type: scobj.type});
+    });
+
+    return msg;
+}
+
+function clientcpp_exportOnMsg(msgobj, root, callback, option) {
+    var msg = {
+        msgname: msgobj.name,
+        rname: base.getRealMsgName(msgobj.name),
+        comment: msgobj.comment,
+        msgid: 'MSGID_RES_' + base.getRealMsgName(msgobj.name).toUpperCase(),
+        member: []
+    };
+
+    base.forEachStruct(msgobj.name, base.getGlobalObj(msgobj.name, root), root, function (staticname, scobj, root) {
+        if (option.isclient) {
+            if (scobj.name.name.indexOf('_') == 0) {
+                return;
+            }
+        }
+
+        if (scobj.name.hasOwnProperty('data')) {
+            msg.member.push({name: scobj.name.name, type: scobj.type, data: scobj.name.data});
+        }
+    });
+
+    return msg;
+}
+
 function clientcpp_getTemplate(projname, option) {
     return [
         {filename: 'logicdata.h', buff: fs.readFileSync(path.join(__dirname, '/crystal/logicdata.h'), 'utf-8')},
@@ -215,5 +292,7 @@ exports.plugins_clientcpp = {
     exportStatic:clientcpp_exportStatic,
     exportMainObj: clientcpp_exportMainObj,
     exportCSVLoader: clientcpp_exportCSVLoader,
+    exportSendMsg: clientcpp_exportSendMsg,
+    exportOnMsg: clientcpp_exportOnMsg,
     getTemplate: clientcpp_getTemplate
 };

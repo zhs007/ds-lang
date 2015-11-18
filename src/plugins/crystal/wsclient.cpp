@@ -1,6 +1,7 @@
 // auto-write by dsl-crystal
 
-#include "WSClient.h"
+#include "wsclient.h"
+#include "logicdata.h"
 
 WSClient::WSClient()
 {
@@ -78,14 +79,30 @@ void WSClient::onOpen(network::WebSocket* ws)
     }
 }
 
-void WSClient::onProcMsg(slots3::ServiceMsg& msg)
+void WSClient::onProcServiceMsg(slots3::ServiceMsg& msg)
 {
-    log("==============onProcMsg");
+    log("==============onProcServiceMsg");
 
-    for(int i = 0; i < msg.lstnode_size(); ++i)
+    for(int i = 0; i < msg.msg_size(); ++i)
     {
-        slots::ServiceMsgNode node =  msg.lstnode(i);
+        {{projname}}::BaseMsg& basemsg =  msg.msg(i);
+        onProcBaseMsg(basemsg);
+    }
+}
 
+void WSClient::onProcBaseMsg(slots3::BaseMsg& msg)
+{
+    switch(msg.msgid())
+    {
+{{#each block_onmsg}}
+    case {{../projname}}::{{msgid}}:
+        {
+            {{../projname}}::{{msgname}} cmsg;
+            cmsg.ParseFromString(msg.buff());
+            onMsg_{{rname}}(cmsg);
+        }
+        break;
+{{/each}}
     }
 }
 
@@ -105,7 +122,7 @@ void WSClient::onRecvMsgBuff()
 {
     slots3::ServiceMsg msg;
     msg.ParseFromArray(m_pBuff, m_msgLength);
-    onProcMsg(msg);
+    onProcServiceMsg(msg);
 
     delete[] m_pBuff;
 
@@ -212,9 +229,9 @@ void WSClient::onError(network::WebSocket* ws, const network::WebSocket::ErrorCo
         //        log(buf);
         //        _sendTextStatus->setString(buf);
     }
-}
+
 //!发消息
-void WSClient::sendMsg(int len, unsigned char* buff)
+void WSClient::send(int len, unsigned char* buff)
 {
     if (m_pWebSocket == NULL)
     {
@@ -233,6 +250,30 @@ void WSClient::sendMsg(int len, unsigned char* buff)
     m_pWebSocket->send(buff, len);
 }
 
+//!发消息
+void WSClient::sendMsg(slots3::MSGID msgid, int len, unsigned char* buff)
+{
+    if (m_pWebSocket == NULL)
+    {
+        return;
+    }
+
+    slots3::BaseMsg msg;
+    msg.set_msgid(msgid);
+    msg.set_buff(buf, len);
+
+    slots3::ClientMsg cmsg;
+    cmsg.set_allocated_msg(&msg);
+
+    int clen = cmsg.ByteSize();
+    unsigned char* cbuf = new unsigned char[clen];
+    cmsg.SerializeToArray(cbuf, clen);
+
+    send(clen, cbuf);
+
+    delete cbuf;
+}
+
 void WSClient::reconnect()
 {
     ++m_iConnTimes;
@@ -243,12 +284,33 @@ void WSClient::reconnect()
     }
 }
 
-{{#each block_sendmsg_def}}
-    // {{comment}}
-    {{defcode}}
+{{#each block_sendmsg}}
+// {{comment}}
+void WSClient::sendMsg_{{rname}}({{funcparam}})
+{
+    {{../projname}}::Res_{{rname}} __msg;
+    {{#each member}}
+    __msg.set_{{name}}({{name}});
+    {{/each}}
+
+    int __msglen = __msg.ByteSize();
+    unsigned char* __msgbuf = new unsigned char[__msglen];
+    __msg.SerializeToArray(__msgbuf, __msglen);
+
+    sendMsg({{../projname}}::MSGID::{{msgid}}, __msglen, __msgbuf);
+
+    delete __msgbuf;
+}
+
 {{/each}}
 
-{{#each block_onmsg_def}}
-    // {{comment}}
-    {{defcode}}
+{{#each block_onmsg}}
+// {{comment}}
+void WSClient::onMsg_{{rname}}({{../projname}}::{{msgname}}& msg)
+{
+    {{#each member}}
+    {{../../mainobj.name}}::getSingleton().{{data}} = msg.{{name}}();
+    {{/each}}
+}
+
 {{/each}}

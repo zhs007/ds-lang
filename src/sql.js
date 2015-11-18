@@ -28,7 +28,7 @@ function exportTable(obj, callback, root) {
         for (var i = 0; i < lstmember.length; ++i) {
             var membername = lstmember[i].name.name;
             // type
-            var t = base.getRealType(lstmember[i].type, root);
+            var t = base.getRealType_Enum(lstmember[i].type, root);
             if (t == '[ERR]') {
                 callback(false, 'struct ' + obj.name + '.' + membername + ': type is Error!');
 
@@ -83,7 +83,7 @@ function exportTable(obj, callback, root) {
             var cstr = "`" + fn + "` ";
 
             // type
-            var t = base.getRealType(lstmember[i].type, root);
+            var t = base.getRealType_Enum(lstmember[i].type, root);
             if (t == '[ERR]') {
                 callback(false, 'struct ' + obj.name + '.' + membername + ': type is Error!');
 

@@ -86,6 +86,10 @@ function replaceStr(str) {
         str = str.replace('&#x3D;', '=');
     }
 
+    while(str.indexOf('&amp;') >= 0) {
+        str = str.replace('&amp;', '&');
+    }
+
     return str;
 }
 
@@ -93,7 +97,7 @@ function replaceStr(str) {
 // callback(isok, errinfo)
 function exportCode(projname, root, plugins, objname, callback, option) {
     if (option == undefined) {
-        option = {isclient: false, mainobj: objname};
+        option = {isclient: false, mainobj: objname, projname: projname};
     }
     else {
         if (!option.hasOwnProperty('isclient')) {
@@ -101,6 +105,7 @@ function exportCode(projname, root, plugins, objname, callback, option) {
         }
 
         option.mainobj = objname;
+        option.projname = projname;
     }
 
     var lstexport = [];
@@ -212,6 +217,28 @@ function exportCode(projname, root, plugins, objname, callback, option) {
                     }
                 }
             }
+
+            //------------------------------------------------------------------------------------
+            // message
+
+            curparams.block_sendmsg = [];
+            curparams.block_onmsg = [];
+
+            for (var i = 0; i < root.length; ++i) {
+                if (root[i].type == 'message') {
+                    if (base.isReqMsg(root[i].name)) {
+                        var co = plugins.exportSendMsg(root[i], root, callback, option);
+                        curparams.block_sendmsg.push(co);
+                    }
+                    else if (base.isResMsg(root[i].name)) {
+                        var co = plugins.exportOnMsg(root[i], root, callback, option);
+                        curparams.block_onmsg.push(co);
+                    }
+                }
+            }
+
+            //------------------------------------------------------------------------------------
+            // template
 
             for (var ti = 0; ti < tmparr.length; ++ti) {
                 var curtemplate = handlebars.compile(tmparr[ti].buff);
