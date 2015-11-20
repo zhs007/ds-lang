@@ -62,9 +62,14 @@ function clientcpp_exportEnum(obj, root, callback, option) {
             arr[1].push('= ' + obj.val[i].val.val + ',');
             arr[2].push('//' + obj.val[i].comment);
         }
+
+        enumobj.member.push({name: obj.val[i].name, val: obj.val[i].val.val, comment: obj.val[i].comment});
     }
 
-    enumobj.member = code.alignCodeEx(arr, '');
+    arrcode = code.alignCodeEx(arr, '');
+    for (var i = 0; i < arrcode.length; ++i) {
+        enumobj.member[i].code = arrcode[i];
+    }
 
     return enumobj;
 }
@@ -153,6 +158,7 @@ function clientcpp_exportStatic(obj, root, callback, option) {
 function clientcpp_exportMainObj(obj, root, callback, option) {
     var mainobj = {name: base.getNoUnderscoreName(obj.name), comment: obj.comment, member: []};
     var arr = [[], []];
+    var member = [];
 
     base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
         if (option.isclient) {
@@ -166,11 +172,15 @@ function clientcpp_exportMainObj(obj, root, callback, option) {
                 arr[0].push('std::vector<' + base.getNoUnderscoreName(getCPPType(cobj.type)) + '> ' + base.getNoUnderscoreName(cobj.name.name) + ';');
                 arr[1].push('// ' + cobj.comment);
 
+                member.push({name: base.getNoUnderscoreName(cobj.name.name), type: 'std::vector<' + base.getNoUnderscoreName(getCPPType(cobj.type)) + '>'});
+
                 return ;
             }
             else if(cobj.type2 == 'map') {
                 arr[0].push('std::map<' + base.getStructMemberType(cobj.memberkey, cobj.type, root) + ', ' + base.getNoUnderscoreName(getCPPType(cobj.type)) + '> ' + base.getNoUnderscoreName(cobj.name.name) + ';');
                 arr[1].push('// ' + cobj.comment);
+
+                member.push({name: base.getNoUnderscoreName(cobj.name.name), type: 'std::map<' + base.getStructMemberType(cobj.memberkey, cobj.type, root) + ', ' + base.getNoUnderscoreName(getCPPType(cobj.type)) + '>'});
 
                 return ;
             }
@@ -178,9 +188,16 @@ function clientcpp_exportMainObj(obj, root, callback, option) {
 
         arr[0].push(base.getNoUnderscoreName(getCPPType(cobj.type)) + ' ' + base.getNoUnderscoreName(cobj.name.name) + ';');
         arr[1].push('// ' + cobj.comment);
+
+        member.push({name: base.getNoUnderscoreName(cobj.name.name), type: base.getNoUnderscoreName(getCPPType(cobj.type))});
     });
 
-    mainobj.member = code.alignCodeEx(arr, '');
+    var arrcode = code.alignCodeEx(arr, '');
+    for (var ii = 0; ii < arrcode.length; ++ii) {
+        member[ii].code = arrcode[ii];
+    }
+
+    mainobj.member = member;
 
     return mainobj;
 }
@@ -192,6 +209,7 @@ function clientcpp_exportCSVLoader(memberobj, root, callback, option) {
         keytype: base.getStructMemberType(memberobj.memberkey, memberobj.type, root),
         typename: base.getNoUnderscoreName(getCPPType(memberobj.type)),
         memberkey: memberobj.memberkey,
+        comment: memberobj.comment,
         member: []
     };
 
@@ -202,13 +220,19 @@ function clientcpp_exportCSVLoader(memberobj, root, callback, option) {
             }
         }
 
+        var curmember = {};
+
+        curmember.name = scobj.name.name;
+
         var scvt = base.getRealType(scobj.type, root);
         if (scvt == 'string') {
-            csvloader.member.push('val.second.' + scobj.name.name + ' = csvloader.get("' + scobj.name.name + '", y);');
+            curmember.code = 'val.second.' + scobj.name.name + ' = csvloader.get("' + scobj.name.name + '", y);';
         }
         else {
-            csvloader.member.push('val.second.' + scobj.name.name + ' = csvloader.get_int("' + scobj.name.name + '", y);');
+            curmember.code = 'val.second.' + scobj.name.name + ' = csvloader.get_int("' + scobj.name.name + '", y);';
         }
+
+        csvloader.member.push(curmember);
     });
 
     return csvloader;
@@ -300,14 +324,26 @@ function servjs_exportTypedef(obj, root, callback, option) {
 function servjs_exportEnum(obj, root, callback, option) {
     var enumobj = {name: obj.name, comment: obj.comment, member: []};
     var arr = [[], [], []];
+    var arr1 = [[], [], []];
 
     for (var i = 0; i < obj.val.length; ++i) {
-        arr[0].push('exports.' + obj.val[i].name);
+        arr[0].push('var ' + obj.val[i].name);
         arr[1].push('= ' + obj.val[i].val.val + ';');
         arr[2].push('//' + obj.val[i].comment);
+
+        arr1[0].push('exports.' + obj.val[i].name);
+        arr1[1].push('= ' + obj.val[i].name + ';');
+        arr1[2].push('//' + obj.val[i].comment);
+
+        enumobj.member.push({name: obj.val[i].name, val: obj.val[i].val.val, comment: obj.val[i].comment});
     }
 
-    enumobj.member = code.alignCodeEx(arr, '');
+    arrcode = code.alignCodeEx(arr, '');
+    arr1code = code.alignCodeEx(arr1, '');
+    for (var i = 0; i < arrcode.length; ++i) {
+        enumobj.member[i].code = arrcode[i];
+        enumobj.member[i].code1 = arr1code[i];
+    }
 
     return enumobj;
 }
@@ -325,7 +361,6 @@ function servjs_exportStatic(obj, root, callback, option) {
 // callback(isok, errinfo)
 function servjs_exportMainObj(obj, root, callback, option) {
     var mainobj = {name: base.getNoUnderscoreName(obj.name), comment: obj.comment, member: []};
-    var arr = [[], []];
 
     base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
         if (option.isclient) {
@@ -334,26 +369,12 @@ function servjs_exportMainObj(obj, root, callback, option) {
             }
         }
 
-        if (cobj.hasOwnProperty('type2')) {
-            if (cobj.type2 == 'repeated') {
-                arr[0].push('std::vector<' + base.getNoUnderscoreName(getCPPType(cobj.type)) + '> ' + base.getNoUnderscoreName(cobj.name.name) + ';');
-                arr[1].push('// ' + cobj.comment);
-
-                return ;
-            }
-            else if(cobj.type2 == 'map') {
-                arr[0].push('std::map<' + base.getStructMemberType(cobj.memberkey, cobj.type, root) + ', ' + base.getNoUnderscoreName(getCPPType(cobj.type)) + '> ' + base.getNoUnderscoreName(cobj.name.name) + ';');
-                arr[1].push('// ' + cobj.comment);
-
-                return ;
-            }
-        }
-
-        arr[0].push(base.getNoUnderscoreName(getCPPType(cobj.type)) + ' ' + base.getNoUnderscoreName(cobj.name.name) + ';');
-        arr[1].push('// ' + cobj.comment);
+        mainobj.member.push({
+            name: base.getNoUnderscoreName(cobj.name.name),
+            type: cobj.type,
+            code: 'exports.' + base.getNoUnderscoreName(cobj.name.name) + ' = ' + base.getNoUnderscoreName(cobj.name.name) + '; // ' + cobj.comment
+        });
     });
-
-    mainobj.member = code.alignCodeEx(arr, '');
 
     return mainobj;
 }
@@ -361,10 +382,11 @@ function servjs_exportMainObj(obj, root, callback, option) {
 function servjs_exportCSVLoader(memberobj, root, callback, option) {
     var csvloader = {
         name: memberobj.name.name,
-        filename: base.getMemberName(memberobj.type) + '.csv',
+        filename: base.getMemberName(memberobj.type) + '.json',
         keytype: base.getStructMemberType(memberobj.memberkey, memberobj.type, root),
         typename: base.getNoUnderscoreName(getCPPType(memberobj.type)),
         memberkey: memberobj.memberkey,
+        comment: memberobj.comment,
         member: []
     };
 
@@ -375,13 +397,9 @@ function servjs_exportCSVLoader(memberobj, root, callback, option) {
             }
         }
 
-        var scvt = base.getRealType(scobj.type, root);
-        if (scvt == 'string') {
-            csvloader.member.push('val.second.' + scobj.name.name + ' = csvloader.get("' + scobj.name.name + '", y);');
-        }
-        else {
-            csvloader.member.push('val.second.' + scobj.name.name + ' = csvloader.get_int("' + scobj.name.name + '", y);');
-        }
+        var curmember = {name: scobj.name.name, code: ''};
+
+        csvloader.member.push(curmember);
     });
 
     return csvloader;

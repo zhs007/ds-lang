@@ -15,6 +15,12 @@ var argv = require('yargs')
         describe: 'output client cpp code',
         type: 'boolean'
     })
+    .option('servjs', {
+        alias : 'servjs',
+        demand: false,
+        describe: 'output serv js code',
+        type: 'boolean'
+    })
     .usage('Usage: ' + PLUGINS_CLI_NAME + ' input-filename')
     .example(PLUGINS_CLI_NAME + ' input-filename', PLUGINS_CLI_NAME + ' input-filename')
     .help('h')
@@ -57,6 +63,14 @@ if (argv.clientcpp) {
             process.exit(1);
         }
     }, {isclient: true});
+}
 
-    //console.log(filename + '.h OK!');
+if (argv.servjs) {
+    var filearr = code.exportCode(filename, root, plugins.plugins_servjs, '_ServiceData', function (isok, errinfo) {
+        if (!isok) {
+            console.log('servjs err : ' + errinfo);
+
+            process.exit(1);
+        }
+    }, {isclient: false});
 }

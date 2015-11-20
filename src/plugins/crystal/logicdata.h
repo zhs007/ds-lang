@@ -23,7 +23,7 @@
 // {{comment}}
 enum {{name}}{
 {{#each member}}
-    {{this}}
+    {{code}}
 {{/each}}
 };
 
@@ -55,7 +55,7 @@ public:
     static {{mainobj.name}}& getSingleton();
 public:
 {{#each mainobj.member}}
-    {{this}}
+    {{code}}
 {{/each}}
 private:
     // construct

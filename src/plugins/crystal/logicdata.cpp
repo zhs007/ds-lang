@@ -24,7 +24,7 @@
         {
             std::pair<{{keytype}}, {{typename}}> val;
             {{#each member}}
-            {{this}}
+            {{code}}
             {{/each}}
             val.first = val.second.{{memberkey}};
             {{name}}.insert(val);
