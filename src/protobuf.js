@@ -110,7 +110,7 @@ function exportMember(obj, lstexport, root) {
                 }
             }
         }
-    });
+    }, true);
 
     return lstexport;
 }
@@ -148,7 +148,7 @@ function exportMsg(msg, callback, root) {
 
             beginid++;
         }
-    });
+    }, true);
 
     str += code.alignCode(arr, '\t');
 

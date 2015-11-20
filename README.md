@@ -28,6 +28,9 @@ why
 ---
 * **0.5.2**
  * 使用**[handlebars](https://github.com/wycats/handlebars.js/)**重构代码生成部分。
+ * 支持crystal导出NodeJS服务端代码。
+ * 支持枚举直接做默认值。
+ * 修正展开子结构时没有考虑下划线的bug。
 
 * **0.5.1**
  * 代码生成时，对齐代码。

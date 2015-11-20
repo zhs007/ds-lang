@@ -19,8 +19,8 @@
     {
         // load {{filename}}
         CSVLoader csvloader;
-        csvloader.load("{{filename}}");
-        for (int y = 0; y < csvloader.getHeight(); ++y)
+        csvloader.load("res/{{filename}}");
+        for (int y = 1; y < csvloader.getHeight(); ++y)
         {
             std::pair<{{keytype}}, {{typename}}> val;
             {{#each member}}

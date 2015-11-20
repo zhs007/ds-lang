@@ -5,6 +5,7 @@ var process = require('process');
 var glob = require('glob');
 var dsl = require('../grammar/dsl');
 var grammar = require('../src/grammar');
+var base = require('../src/base');
 var sql = require('../src/sql');
 var excel = require('../src/excel');
 var protobuf = require('../src/protobuf');
@@ -63,6 +64,7 @@ if (!grammarok) {
     process.exit(1);
 }
 
+ret = base.procInMessage(ret);
 ret = grammar.reverseObj(ret);
 
 console.log('dslang compile finished!');

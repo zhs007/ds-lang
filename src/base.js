@@ -230,8 +230,16 @@ function getEnumMemberRealName(str, enumname) {
 }
 
 // callback(structname, obj, root)
-function forEachStruct(structname, obj, root, callback) {
+function forEachStruct(structname, obj, root, callback, noexline) {
+    if (noexline == undefined) {
+        noexline = false;
+    }
+
     for (var i = 0; i < obj.val.length; ++i) {
+        if (noexline && obj.val[i].name.name.indexOf('_') == 0) {
+            continue ;
+        }
+
         if (obj.val[i].hasOwnProperty('type2') && obj.val[i].type2 == 'expand') {
             if (!obj.val[i].hasOwnProperty('expand')) {
                 forEachStruct(structname, getGlobalObj(obj.val[i].type, root), root, callback);
@@ -360,6 +368,97 @@ function buildEnumResMemberName(name) {
     return 'MSGID_RES_' + name.slice(4).toUpperCase();
 }
 
+function getMemberDefaultVal(obj, member, root) {
+    var curtype = getRealType(member.type, root);
+    if (isBaseType(curtype)) {
+        if (member.hasOwnProperty('val')) {
+            if ('AUTOINC' == member.val.val) {
+                return 0;
+            }
+            else if ('NOW' == member.val.val) {
+                return 'Date.now()';
+            }
+        }
+
+        if ('string' == curtype) {
+            return '""';
+        }
+
+        return 0;
+    }
+
+    if (member.hasOwnProperty('val')) {
+        return member.val.name;
+    }
+
+    return ;
+}
+
+// 根据名字取到成员
+function getMember(obj, name, root) {
+    var ii = str.indexOf('.');
+    if (ii < 0) {
+        var curobj = undefined;
+        forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
+            if (name == cobj.name.name) {
+                curobj = cobj;
+            }
+        });
+
+        return curobj;
+    }
+
+    if (ii == 0) {
+        return ;
+    }
+
+    var curtype = undefined;
+    var cur = str.slice(0, ii);
+    forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
+        if (cur == cobj.name.name) {
+            curtype = cobj.type;
+        }
+    });
+
+    if (curtype != undefined) {
+        return getMember(getGlobalObj(curtype, root), str.slice(ii + 1), root);
+    }
+
+    return ;
+}
+
+// 为结构增加标识
+function setInMessage(obj, root) {
+    obj.inmessage = true;
+
+    if (obj.type == 'static' || obj.type == 'struct' || obj.type == 'message') {
+        for (var i = 0; i < obj.val.length; ++i) {
+            var cval = obj.val[i];
+            if (cval.hasOwnProperty('type2') && 'expand' == cval.type2) {
+                continue ;
+            }
+
+            var mytype = getRealType(cval.type, root);
+            if (isBaseType(mytype)) {
+                continue ;
+            }
+
+            setInMessage(getGlobalObj(mytype, root), root);
+        }
+    }
+}
+
+// 为所有消息内结构增加标识
+function procInMessage(root) {
+    for (var i = 0; i < root.length; ++i) {
+        if ('message' == root[i].type) {
+            setInMessage(root[i], root);
+        }
+    }
+
+    return root;
+}
+
 exports.isBaseType = isBaseType;
 exports.isType = isType;
 exports.getRealType = getRealType;
@@ -386,3 +485,6 @@ exports.getRealMsgName = getRealMsgName;
 exports.isReqMsg = isReqMsg;
 exports.buildEnumReqMemberName = buildEnumReqMemberName;
 exports.buildEnumResMemberName = buildEnumResMemberName;
+exports.getMemberDefaultVal = getMemberDefaultVal;
+exports.getMember = getMember;
+exports.procInMessage = procInMessage;

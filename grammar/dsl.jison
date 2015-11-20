@@ -68,12 +68,36 @@
       return mapval[objname].val;
     }
 
+    for (var valkey in mapval) {
+      if (mapval[valkey].type == 'enum') {
+        for (var ii = 0; ii < mapval[valkey].val.length; ++ii) {
+          if (objname == mapval[valkey].val[ii].name) {
+            return mapval[valkey].val[ii].val.val;
+          }
+        }
+      }
+    }    
+
     return 0;
   }
 
   function getType(objname) {
+    //console.log('getType ' + objname);
     if (mapval.hasOwnProperty(objname)) {
       return mapval[objname].type;
+    }
+
+    //console.log('getType ' + objname + ' ' + JSON.stringify(mapval));
+    for (var valkey in mapval) {
+      //console.log('getType ' + objname + ' ' + valkey);
+      if (mapval[valkey].type == 'enum') {
+        //console.log('getType ' + objname + ' ' + mapval[valkey].name);
+        for (var ii = 0; ii < mapval[valkey].val.length; ++ii) {
+          if (objname == mapval[valkey].val[ii].name) {
+            return mapval[valkey].name;
+          }
+        }
+      }
     }
 
     return 'int';
@@ -134,7 +158,7 @@ codeblock:
   |
   STATIC WORD LB structinfo RB SEMI {$$ = {type: 'static', val: $4, name: $2}}
   |
-  ENUM WORD LB enuminfo RB SEMI {$$ = {type: 'enum', val: $4, name: $2}}
+  ENUM WORD LB enuminfo RB SEMI {var enumobj = {type: 'enum', val: $4, name: $2}; addVal(enumobj); $$ = enumobj}
   |
   MESSAGE WORD LB structinfo RB SEMI {$$ = {type: 'message', val: $4, name: $2}}
   ;

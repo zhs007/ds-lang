@@ -40,6 +40,16 @@ struct {{name}}{
 {{#each member}}
     {{this}}
 {{/each}}
+{{#if inmsg}}
+
+	// 处理和协议的赋值
+	const {{name}}& operator = ({{../projname}}::{{name}}& msg)
+	{
+		{{#each inmsg}}
+		{{code}}
+		{{/each}}
+	}
+{{/if}}
 };
 
 {{/each}}
