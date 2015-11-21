@@ -5,6 +5,7 @@
 
 #include "string"
 #include "map"
+#include "slots3.pb.h"
 
 {{#if block_typedef}}
 //-------------------------------------------------------------------
@@ -43,7 +44,7 @@ struct {{name}}{
 {{#if inmsg}}
 
 	// 处理和协议的赋值
-	const {{name}}& operator = ({{../projname}}::{{name}}& msg)
+	{{name}}(const {{../projname}}::{{name}}& msg)
 	{
 		{{#each inmsg}}
 		{{code}}

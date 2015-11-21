@@ -133,8 +133,10 @@ function clientcpp_exportStatic(obj, root, callback, option) {
         return undefined;
     }
 
+    var inmsg = false;
     if (obj.hasOwnProperty('inmessage') && obj.inmessage) {
-        structobj.inmsg = true;
+        structobj.inmsg = [];
+        inmsg = true;
     }
 
     base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
@@ -161,6 +163,10 @@ function clientcpp_exportStatic(obj, root, callback, option) {
 
         arr[0].push(base.getNoUnderscoreName(getCPPType(cobj.type)) + ' ' + base.getNoUnderscoreName(cobj.name.name) + ';');
         arr[1].push('// ' + cobj.comment);
+
+        if (inmsg) {
+            structobj.inmsg.push({code: base.getNoUnderscoreName(cobj.name.name) + ' = msg.' + base.getNoUnderscoreName(cobj.name.name) + '();'});
+        }
     }, true);
 
     structobj.member = code.alignCodeEx(arr, '');
