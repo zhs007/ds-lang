@@ -43,6 +43,11 @@ struct {{name}}{
 {{/each}}
 {{#if inmsg}}
 
+	// 默认构造函数
+	{{name}}()
+	{
+	}
+
 	// 处理和协议的赋值
 	{{name}}(const {{../projname}}::{{name}}& msg)
 	{
