@@ -380,6 +380,12 @@ function servjs_exportStruct(obj, root, callback, option) {
         return undefined;
     }
 
+    var inmsg = false;
+    if (obj.hasOwnProperty('inmessage') && obj.inmessage) {
+        structobj.inmsg = [];
+        inmsg = true;
+    }
+
     base.forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
         var curval = base.getMemberDefaultVal(obj, cobj, root);
 
@@ -392,6 +398,18 @@ function servjs_exportStruct(obj, root, callback, option) {
         arr[1].push('//' + cobj.comment);
 
         structobj.member.push({name: base.getNoUnderscoreName(cobj.name.name), val: curval, comment: cobj.comment});
+
+        if (obj.hasOwnProperty('inmessage') && obj.inmessage) {
+            if (cobj.name.name.indexOf('_') == 0) {
+                return ;
+            }
+
+            var inmsg = {};
+            //inmsg.code = 'msg.' + base.getNoUnderscoreName(cobj.name.name) + ' = this.' + base.getNoUnderscoreName(cobj.name.name) + ';';
+            inmsg.name = base.getNoUnderscoreName(cobj.name.name);
+            inmsg.comment = cobj.comment;
+            structobj.inmsg.push(inmsg);
+        }
     });
 
     arrcode = code.alignCodeEx(arr, '');

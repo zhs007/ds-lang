@@ -139,7 +139,7 @@ function isStatic(str, root) {
 function hasMember2(str, obj, root) {
     var ii = str.indexOf('.');
     if (ii < 0) {
-        return hasMember(str, obj, root);
+        return hasMember(getNoUnderscoreName(str), obj, root);
     }
 
     if (ii == 0) {
@@ -147,9 +147,9 @@ function hasMember2(str, obj, root) {
     }
 
     var curtype = undefined;
-    var cur = str.slice(0, ii);
+    var cur = getNoUnderscoreName(str.slice(0, ii));
     forEachStruct(obj.name, obj, root, function (structname, cobj, root) {
-        if (cur == cobj.name.name) {
+        if (cur == getNoUnderscoreName(cobj.name.name)) {
             curtype = cobj.type;
         }
     });
@@ -171,7 +171,7 @@ function hasMember(str, obj, root) {
                 }
             }
         }
-        else if (obj.val[i].name.name == str) {
+        else if (getNoUnderscoreName(obj.val[i].name.name) == str) {
             return true;
         }
     }

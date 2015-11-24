@@ -3,6 +3,7 @@
 "use strict";
 
 var fs = require('fs');
+var dbmgr = require('../base/dbmgr');
 
 {{#if block_enum}}
 //-------------------------------------------------------------------
@@ -41,13 +42,52 @@ var fs = require('fs');
 
 {{#each block_struct}}
 // {{comment}}
-class {{name}}{
+class {{name}} {
 	// 构造函数
 	constructor() {
 		{{#each member}}
     	{{code}}
 		{{/each}}
 	}
+
+{{#if indb}}
+
+	// 读取数据库
+	loaddb() {
+		let dbclient = dbmgr.getDBClient('slots');
+		let sql = util.format("select pid, name, adminkey, gem, gold, lockgem, playerlevel, playerexp, UNIX_TIMESTAMP(regtime) as regtime, UNIX_TIMESTAMP(lastlogintime) as lastlogintime from playerinfo where pid = %d", pid);
+		{{#each inmsg}}
+		msg.{{name}} = this.{{name}}; // {{comment}}
+		{{/each}}
+		return msg;
+	}
+
+	// 写入数据库
+	savedb()
+	{
+		{{#each inmsg}}
+		this.{{name}} = msg.{{name}}; // {{comment}}
+		{{/each}}
+	}
+{{/if}}
+{{#if inmsg}}
+
+	// 返回消息
+	tomsg() {
+		let msg = {};
+		{{#each inmsg}}
+		msg.{{name}} = this.{{name}}; // {{comment}}
+		{{/each}}
+		return msg;
+	}
+
+	// 从消息赋值
+	frommsg(msg) {
+		{{#each inmsg}}
+		this.{{name}} = msg.{{name}}; // {{comment}}
+		{{/each}}
+	}
+{{/if}}
 };
 
 {{/each}}
