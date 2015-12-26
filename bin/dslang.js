@@ -3,12 +3,13 @@
 var fs = require('fs');
 var process = require('process');
 var glob = require('glob');
-var dsl = require('../grammar/dsl');
-var grammar = require('../src/grammar');
-var base = require('../src/base');
-var sql = require('../src/sql');
-var excel = require('../src/excel');
-var protobuf = require('../src/protobuf');
+var dslcore = require('dsl-core');
+//var dsl = require('../grammar/dsl');
+//var grammar = require('../src/grammar');
+//var base = require('../src/base');
+//var sql = require('../src/sql');
+//var excel = require('../src/excel');
+//var protobuf = require('../src/protobuf');
 var argv = require('yargs')
     .option('sql', {
         alias : 'sql',
@@ -50,9 +51,9 @@ if (ptindex > 0) {
 }
 
 var input = fs.readFileSync(basearr[0], 'utf-8');
-var ret = dsl.parse(input);
+var ret = dslcore.compile(input);
 
-var grammarok = grammar.checkGrammar(ret, function (isok, err) {
+var grammarok = dslcore.checkGrammar(ret, function (isok, err) {
     if (!isok) {
         console.log('Error => ' + err);
     }
@@ -64,15 +65,15 @@ if (!grammarok) {
     process.exit(1);
 }
 
-ret = base.procInMessage(ret);
-ret = grammar.reverseObj(ret);
+ret = dslcore.procInMessage(ret);
+ret = dslcore.reverseObj(ret);
 
 console.log('dslang compile finished!');
 fs.writeFileSync(filename + '.json', JSON.stringify(ret), 'utf-8');
 console.log('output file is ' + filename + '.json');
 
 if (argv.sql) {
-    var sqlstr = sql.exportSql(ret, function (isok, err) {
+    var sqlstr = dslcore.exportSql(ret, function (isok, err) {
         if (!isok) {
             console.log('Error => ' + err);
         }
@@ -89,7 +90,7 @@ if (argv.sql) {
 }
 
 if (argv.excel) {
-    excel.exportExcel(filename, ret, function (isok, err) {
+    dslcore.exportExcel(filename, ret, function (isok, err) {
         if (!isok) {
             console.log('Error => ' + err);
         }
@@ -99,7 +100,7 @@ if (argv.excel) {
 }
 
 if (argv.protobuf) {
-    var pbstr = protobuf.exportProtobuf(filename, ret, function (isok, err) {
+    var pbstr = dslcore.exportProtobuf(filename, ret, function (isok, err) {
         if (!isok) {
             console.log('Error => ' + err);
         }

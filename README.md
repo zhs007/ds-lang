@@ -26,6 +26,9 @@ why
 
 更新说明
 ---
+* **0.6.0**
+ * 将内核部分独立成一个新项目 **[dsl-core](https://github.com/zhs007/dsl-core)** 。
+
 * **0.5.2**
  * 使用**[handlebars](https://github.com/wycats/handlebars.js/)**重构代码生成部分。
  * 支持crystal导出NodeJS服务端代码。

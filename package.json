@@ -1,7 +1,7 @@
 {
   "name": "ds-lang",
-  "version": "0.5.2",
-  "latest": "0.5.2",
+  "version": "0.6.0",
+  "latest": "0.6.0",
   "description": "ds-lang",
   "keywords": [
     "ds-lang",
@@ -41,7 +41,8 @@
     "yargs": "*",
     "glob": "*",
     "node-xlsx": "*",
-    "handlebars": "*"
+    "handlebars": "*",
+    "dsl-core": "*"
   },
   "license": "MIT",
   "readmeFilename": "README.md"
