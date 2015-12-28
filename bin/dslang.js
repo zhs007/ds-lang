@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+var path = require('path');
 var fs = require('fs');
 var process = require('process');
 var glob = require('glob');
@@ -29,6 +30,12 @@ var argv = require('yargs')
         describe: 'output protobuf',
         type: 'boolean'
     })
+    .option('v', {
+        alias : 'ver',
+        demand: false,
+        describe: 'ver',
+        type: 'boolean'
+    })
     .usage('Usage: dslang input-filename')
     .example('dslang input-filename', 'dslang input-filename')
     .help('h')
@@ -37,6 +44,16 @@ var argv = require('yargs')
     .argv;
 
 var basearr = argv._;
+
+if (argv.ver) {
+    var pkgfile = path.join(__dirname, '../package.json');
+    var strPackage = fs.readFileSync(pkgfile).toString();
+    var pkg = JSON.parse(strPackage);
+
+    console.log('dslang ver ' + pkg.version);
+
+    process.exit(1);
+}
 
 if (basearr == undefined || basearr.length != 1) {
     console.log('Usage: dslang input-filename');
@@ -48,6 +65,12 @@ var filename = basearr[0];
 var ptindex = basearr[0].lastIndexOf('.');
 if (ptindex > 0) {
     filename = basearr[0].slice(0, ptindex);
+}
+
+if (fs.existsSync(basearr[0])) {
+    console.log('no file ' + basearr[0]);
+
+    process.exit(1);
 }
 
 var input = fs.readFileSync(basearr[0], 'utf-8');
