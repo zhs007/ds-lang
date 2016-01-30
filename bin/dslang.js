@@ -67,7 +67,7 @@ if (ptindex > 0) {
     filename = basearr[0].slice(0, ptindex);
 }
 
-if (fs.existsSync(basearr[0])) {
+if (!fs.existsSync(basearr[0])) {
     console.log('no file ' + basearr[0]);
 
     process.exit(1);
